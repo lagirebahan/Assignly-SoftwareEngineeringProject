@@ -1,3 +1,4 @@
+import MainNavbar from "@/components/layout/Navbar";
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#2e2e2e] to-[#b6a88b] p-8">

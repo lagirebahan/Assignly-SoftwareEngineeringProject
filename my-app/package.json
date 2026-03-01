@@ -9,6 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@heroui/navbar": "^2.2.29",
+    "@heroui/react": "^2.8.9",
+    "@heroui/system": "^2.4.27",
+    "@heroui/theme": "^2.4.26",
+    "framer-motion": "^12.34.3",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"
