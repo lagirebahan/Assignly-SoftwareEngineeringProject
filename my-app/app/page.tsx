@@ -10,7 +10,7 @@ export default function HomePage() {
 
         {/* Upcoming Tasks */}
         <div>
-          <h2 className="text-white text-xl mb-4">Upcoming Task</h2>
+          <h2 className="text-white text-xl mb-4 text-center">Upcoming Task</h2>
           {/* blm buat script untuk scrolling and flexible group amount*/}
           <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2">
             {["Group 1", "Group 2", "Group 3", "Group 4"].map((group) => (
@@ -29,7 +29,7 @@ export default function HomePage() {
 
           {/* STATUS CARD */}
           <div className="bg-gray-200 rounded-2xl p-6 shadow-md">
-            <h2 className="text-center font-semibold text-lg mb-4">Status</h2>
+            <h2 className="text-center font-semibold text-lg text-black mb-4 " color-black>Status</h2>
 
             <div className="space-y-4">
               <StatusRow label="Waiting for validation" count={1} />
@@ -40,7 +40,7 @@ export default function HomePage() {
 
           {/* RECENT TEAMS */}
           <div className="bg-gray-200 rounded-2xl p-6 shadow-md">
-            <h2 className="text-center font-semibold text-lg mb-6">
+            <h2 className="text-center font-semibold text-lg text-black mb-6">
               Recent Teams
             </h2>
             {/*logic recency blm ada, and jg gambar tim kl pake jg blm*/}
@@ -64,8 +64,8 @@ export default function HomePage() {
 
 function StatusRow({ label, count }: { label: string; count: number }) {
   return (
-    <div className="flex justify-between items-center">
-      <span className="text-gray-700">{label}</span>
+    <div className="flex justify-between items-center px-5"> {/* border border-black rounded-md */}
+      <span className="text-gray-700 ">{label}</span>
       <span className="text-red-500 font-semibold">{count}</span>
     </div>
   )
