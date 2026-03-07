@@ -1,5 +1,7 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 import Image from "next/image";
 
 import {
@@ -31,6 +33,7 @@ export const AssignlyLogo = () => {
 };
 
 export default function AppNavbar() {
+  const pathname = usePathname();
   return (
     <Navbar 
       maxWidth="xl" //isBordered kl butuh
@@ -40,8 +43,10 @@ export default function AppNavbar() {
       
       <NavbarContent className="flex justify-start">
         <NavbarBrand className="gap-2">
-          <AssignlyLogo />
-          <p className="font-bold text-inherit">Assignly</p>
+          <Link href="/" className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+            <AssignlyLogo />
+            <p className="font-bold text-inherit">Assignly</p>
+          </Link>
         </NavbarBrand>
       </NavbarContent>
 
@@ -51,26 +56,23 @@ export default function AppNavbar() {
           hidden sm:flex 
           gap-4 
           absolute left-1/2 -translate-x-1/2">
-        <NavbarItem className="">
-          <Link color="foreground" href="../">
+        <NavbarItem>
+          <Link color="foreground" href="../" className={`transition-all hover:opacity-70 ${pathname === "/" ? "font-bold underline" : ""}`}>
             Home
           </Link>
         </NavbarItem>
-        <NavbarItem isActive>
-          <Link aria-current="page" color="secondary" href="/teams">
+        <NavbarItem>
+          <Link color="foreground" href="/teams" className={`transition-all hover:opacity-70 ${pathname === "/teams" ? "font-bold underline" : ""}`}>
             Teams
           </Link>
         </NavbarItem>
-        {/* <NavbarItem>
-          <Link color="foreground" href="#">
-            Integrations
-          </Link>
-        </NavbarItem> */}
       </NavbarContent>
 
       {/*this should be on the right(dropdown should drop under profile)*/}
       <NavbarContent as="div" justify="end" className="flex-none">
-        <Dropdown placement="bottom-end">
+        {/* <h1>Hello {user?.name || "User"}!</h1> */}
+        <h1 className="text-[#d3af37]">Hello, User!</h1>
+        <Dropdown placement="bottom-end"  offset={5} crossOffset={90}>
           <DropdownTrigger>
             {/* const userImage = user?.image; // from your user data */}
             {/* <Avatar
@@ -85,9 +87,9 @@ export default function AppNavbar() {
             <Avatar
               isBordered
               as="button"
-              className="transition-transform"
+              className="transition-transform mr-6 hover:opacity-80 cursor-pointer"
               color="secondary"
-              style={{ width: "24px", height: "24px" }}
+              style={{ width: "30px", height: "30px" }}
               name="Jason Hughes"
               src="/default_profile.png"
             />
@@ -96,8 +98,8 @@ export default function AppNavbar() {
           aria-label="Profile Actions" 
           variant="flat" 
           classNames={{
-            base: "w-56",
-            list: "flex flex-col gap-0",
+            base: "w-50",
+            list: "flex flex-col gap-0 bg-black p-2 rounded-xl ",
           }}
           >
             <DropdownItem 
@@ -106,13 +108,13 @@ export default function AppNavbar() {
               isReadOnly 
               textValue="profile"
             >
-              <p className="text-xs text-default-400">Signed in as</p>
-              <p className="text-sm font-semibold truncate">zoey@example.com</p>
+              <p className="text-xs text-default-400 px-1">Signed in as</p>
+              <p className="text-sm font-semibold truncate px-1">zoey@example.com</p>
             </DropdownItem>
-            <DropdownItem key="profile" >My Profile</DropdownItem>
-            <DropdownItem key="my_settings" >Settings</DropdownItem>
-            <DropdownItem key="notifications" >Notifications</DropdownItem>
-            <DropdownItem key="logout" color="danger" >
+            <DropdownItem key="profile" className="p-1">My Profile</DropdownItem>
+            <DropdownItem key="my_settings" className="p-1">Settings</DropdownItem>
+            <DropdownItem key="notifications" className="p-1">Notifications</DropdownItem>
+            <DropdownItem key="logout" className="text-red-500 p-1" >
               Log Out
             </DropdownItem>
           </DropdownMenu>
