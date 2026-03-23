@@ -108,8 +108,8 @@ export default function AppNavbar() {
               isReadOnly 
               textValue="profile"
             >
-              <p className="text-xs text-default-400 px-1">Signed in as</p>
-              <p className="text-sm font-semibold truncate px-1">zoey@example.com</p>
+              <p className="text-xs text-default-400 px-1">Signed in as</p> {/**no links yet */}
+              <p className="text-sm text-blue-500 font-semibold truncate px-1">zoey@example.com</p>
             </DropdownItem>
             <DropdownItem key="profile" className="p-1">My Profile</DropdownItem>
             <DropdownItem key="my_settings" className="p-1">Settings</DropdownItem>
