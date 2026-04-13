@@ -1,4 +1,3 @@
-import MainNavbar from "@/components/layout/Navbar";
 import Link from "next/link";
 export default function HomePage() {
   return (
