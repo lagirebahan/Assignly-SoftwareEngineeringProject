@@ -8,6 +8,6 @@ export interface TeamMember {
 export interface Team {
   id: string;
   name: string;
-  progress: number;
+  // progress: number;
   members: TeamMember[];
 }

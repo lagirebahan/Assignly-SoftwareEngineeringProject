@@ -1,7 +1,11 @@
 "use client"
 import { useState } from "react";
 
-export function Modal({ onClose, onCreateTeam }: { onClose: () => void; onCreateTeam: () => void }) {
+export function Modal({ onClose, onCreateTeam, onJoinTeam }: { 
+  onClose: () => void; 
+  onCreateTeam: (teamName: string) => void; 
+  onJoinTeam:(joinCode:string)=>void; 
+}) {
   const [tab, setTab] = useState<"create" | "join">("create");
   const [teamName, setTeamName] = useState("");
   const [joinCode, setJoinCode] = useState("");
@@ -20,6 +24,18 @@ export function Modal({ onClose, onCreateTeam }: { onClose: () => void; onCreate
     textTransform: "uppercase" as const,
     transition: "color 0.2s, border-color 0.2s",
   });
+
+  const handleCreate = () => {
+    if (!teamName.trim()) return;
+    onCreateTeam(teamName);
+    onClose();
+  }
+
+  const handleJoin = () => {
+    if (!joinCode.trim()) return;
+    onJoinTeam(joinCode);
+    onClose();
+  };
 
   return (
     <div
@@ -87,7 +103,7 @@ export function Modal({ onClose, onCreateTeam }: { onClose: () => void; onCreate
                 }}
               />
               <button
-                onClick={() => { onCreateTeam(); onClose(); }}
+                onClick={() => { handleCreate }}
                 style={{
                   width: "100%",
                   padding: "12px 0",
@@ -134,7 +150,7 @@ export function Modal({ onClose, onCreateTeam }: { onClose: () => void; onCreate
                 }}
               />
               <button
-                onClick={() => { onCreateTeam(); onClose(); }}
+                onClick={() => { handleJoin}}
                 style={{
                   width: "100%",
                   padding: "12px 0",

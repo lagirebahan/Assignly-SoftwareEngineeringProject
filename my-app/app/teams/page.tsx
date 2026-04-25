@@ -23,15 +23,61 @@ export default function TeamPage() {
     t.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleAddTeam = () => {
-    // In real app, this would make an API call
-    // For demo, we just close the modal
+  const handleCreateTeam = async (name:string) => {
+    try {
+    const res = await fetch("/api/teams/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to create team");
+    }
+
+    const newTeam = await res.json();
+
+    // assuming API returns created team
+    setTeams((prev) => [...prev, newTeam]);
+    setShowModal(false)
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to create team");
+  }
+  };
+
+  const handleJoinTeam = async (joinCode:string) => {
+    try {
+    const res = await fetch("/api/teams/join", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ joinCode }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Invalid invite code");
+    }
+
+    const team:Team = await res.json();
+
+    setTeams((prev) => [...prev, team]);
+    setShowModal(false)
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to join team");
+  }
   };
 
   return (
-    <main
+    <div
       style={{
-        minHeight: "100vh",
+        height: "100%",
         background: "linear-gradient(to bottom, #2e2e2e, #b6a88b)",
         display: "flex",
         flexDirection: "column",
@@ -71,34 +117,51 @@ export default function TeamPage() {
       </div>
 
       {/* Body */}
-      {!hasTeams ? (
-        <EmptyState onClick={() => setShowModal(true)} />
-      ) : (
-        <>
-          <Legend />
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 20,
-              alignItems: "start",
-            }}
-          >
-            {/* Add Team card */}
-            <AddTeamCard onClick={() => setShowModal(true)} />
+      <div className= "flex flex-col min-h-0">
+        {!hasTeams ? (
+          <EmptyState onClick={() => setShowModal(true)} />
+        ) : (
+          <>
+            {/* red dot orange dot thingy */}
+            <div className="flex-shrink-0">
+              <Legend />
+            </div>
+            
+            <div className="flex-1 overflow-y-auto pr-2 min-h-0 space-y-6
+            [&::-webkit-scrollbar]:w-1.5
+            [&::-webkit-scrollbar-track]:bg-white
+            [&::-webkit-scrollbar-track]:rounded-full
+            [&::-webkit-scrollbar-thumb]:rounded-full
+            [&::-webkit-scrollbar-thumb]:bg-gray-400/100"
+            >
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, 1fr)",
+                  gap: 20,
+                  alignItems: "start",
+                }}
+              >
+                {/* Add Team card */}
+                <AddTeamCard onClick={() => setShowModal(true)} />
 
-            {/* Team cards */}
-            {filteredTeams.map((team) => (
-              <TeamCard key={team.id} team={team} />
-            ))}
-          </div>
-        </>
-      )}
+                {/* Team cards */}
+                {filteredTeams.map((team) => (
+                  <TeamCard key={team.id} team={team} />
+                ))}
+              </div>
+            </div>
+            
+          </>
+        )}
+      </div>
+      
+      
 
       {/* Modal */}
       {showModal && (
-        <Modal onClose={() => setShowModal(false)} onCreateTeam={handleAddTeam} />
+        <Modal onClose={() => setShowModal(false)} onCreateTeam={handleCreateTeam} onJoinTeam={handleJoinTeam}/>
       )}
-    </main>
+    </div>
   );
 }

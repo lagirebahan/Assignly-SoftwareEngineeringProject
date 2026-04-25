@@ -3,9 +3,11 @@ import Link from "next/link";
 import { StatusDot } from "./StatusDot";
 import { ProgressBar } from "./ProgressBar";
 import { Team } from "@/types/team";
+import { getTeamProgress } from "@/utils/team";
 
 export function TeamCard({ team }: { team: Team }) {
   const hasAlert = team.members.some((m) => m.taskStatus !== "done");
+  const progress = getTeamProgress(team.members)
   return (
     <Link href={`/teams/${team.id}`} style={{ textDecoration: "none" }}>
       <div
@@ -52,7 +54,7 @@ export function TeamCard({ team }: { team: Team }) {
           {team.name}
         </h2>
 
-        <ProgressBar value={team.progress} />
+        <ProgressBar value={progress} />
 
         <p style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
           Members:
