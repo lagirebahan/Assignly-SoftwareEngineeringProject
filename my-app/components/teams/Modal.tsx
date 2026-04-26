@@ -26,12 +26,14 @@ export function Modal({ onClose, onCreateTeam, onJoinTeam }: {
   });
 
   const handleCreate = () => {
+    console.log("CREATE CLICKED", teamName);
     if (!teamName.trim()) return;
     onCreateTeam(teamName);
     onClose();
   }
 
   const handleJoin = () => {
+    console.log("join CLICKED", joinCode);
     if (!joinCode.trim()) return;
     onJoinTeam(joinCode);
     onClose();
@@ -103,7 +105,7 @@ export function Modal({ onClose, onCreateTeam, onJoinTeam }: {
                 }}
               />
               <button
-                onClick={() => { handleCreate }}
+                onClick={handleCreate}
                 style={{
                   width: "100%",
                   padding: "12px 0",
@@ -150,7 +152,7 @@ export function Modal({ onClose, onCreateTeam, onJoinTeam }: {
                 }}
               />
               <button
-                onClick={() => { handleJoin}}
+                onClick={handleJoin}
                 style={{
                   width: "100%",
                   padding: "12px 0",
