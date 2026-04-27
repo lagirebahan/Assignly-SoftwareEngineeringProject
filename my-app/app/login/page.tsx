@@ -1,26 +1,161 @@
-import MainNavbar from "@/components/layout/Navbar";
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+
 export default function LoginPage() {
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-[#2e2e2e] to-[#b6a88b] p-8">
-      
-      {/* sementara title pagenya gini dulu, blm ada navbar */}
-      <h1 className="text-white text-2xl mb-6">Login Page</h1>
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
-      <div>Testing loginpage</div>
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
 
-      
-      
-    </div>
-  )
+    if (!email || !password) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    setLoading(true);
+
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
+    if (!res.ok) {
+      setError(data.message || "Login failed.");
+      return;
+    }
+
+    if (!res.ok) {
+  setError(data.message || "Login failed.");
+  return;
 }
 
-// /* reusable component line 34 */
+// ✅ SAVE USER HERE
+localStorage.setItem("user", JSON.stringify(data.user));
 
-// function StatusRow({ label, count }: { label: string; count: number }) {
-//   return (
-//     <div className="flex justify-between items-center">
-//       <span className="text-gray-700">{label}</span>
-//       <span className="text-red-500 font-semibold">{count}</span>
-//     </div>
-//   )
-// }
+setSuccess(`Welcome back, ${data.user.name}! Redirecting...`);
+
+setTimeout(() => {
+  window.location.href = "/";
+}, 1000);
+  };
+
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center p-6"
+      style={{ background: "linear-gradient(145deg, #8a7d6b 0%, #6b6055 40%, #504840 100%)" }}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl p-10"
+        style={{ background: "#f9f8f6", boxShadow: "0 30px 60px rgba(0,0,0,0.25)" }}
+      >
+        {/* Logo + tab */}
+        <div className="flex flex-col items-center gap-3 mb-8">
+          <Image src="/icon.png" alt="Assignly Logo" width={54} height={54} priority />
+          <span
+            className="text-sm font-medium px-6 py-2 rounded-full"
+            style={{ background: "#1a1a1a", color: "#f9f8f6", letterSpacing: "0.1em" }}
+          >
+            Login
+          </span>
+        </div>
+
+        {/* Alerts */}
+        {error && (
+          <div
+            className="mb-4 px-4 py-3 rounded-lg text-sm"
+            style={{ background: "#fdecea", color: "#c0392b", border: "1px solid #f5c6c2" }}
+          >
+            {error}
+          </div>
+        )}
+        {success && (
+          <div
+            className="mb-4 px-4 py-3 rounded-lg text-sm"
+            style={{ background: "#eafaf1", color: "#1e8449", border: "1px solid #a9dfbf" }}
+          >
+            {success}
+          </div>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleLogin} noValidate className="flex flex-col gap-3">
+          <input
+            type="email"
+            placeholder="Email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg text-sm outline-none"
+            style={{
+              background: "#f0ede8",
+              border: "1px solid #d8d4cc",
+              color: "#1a1a1a",
+              fontFamily: "var(--font-poppins), sans-serif",
+            }}
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg text-sm outline-none"
+            style={{
+              background: "#f0ede8",
+              border: "1px solid #d8d4cc",
+              color: "#1a1a1a",
+              fontFamily: "var(--font-poppins), sans-serif",
+            }}
+          />
+
+          <div className="flex justify-end -mt-1">
+            <Link href="/forgot-password" className="text-xs" style={{ color: "#888" }}>
+              Forgot?
+            </Link>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 rounded-full text-sm font-medium mt-1 disabled:opacity-60 cursor-pointer hover:opacity-80 transition-opacity"
+            style={{
+              background: "#1a1a1a",
+              color: "#f9f8f6",
+              fontFamily: "var(--font-poppins), sans-serif",
+              letterSpacing: "0.06em",
+            }}
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+
+        <p className="text-center text-xs mt-5" style={{ color: "#888" }}>
+          No Account?{" "}
+          <Link
+            href="/register"
+            className="font-medium underline underline-offset-2"
+            style={{ color: "#1a1a1a" }}
+          >
+            Sign up
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
