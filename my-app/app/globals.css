@@ -27,5 +27,5 @@ body {
 
 html, body {
   height: 100%;
-  overflow: auto; /*scroll lock*/
+  overflow: hidden; /*scroll lock*/
 }

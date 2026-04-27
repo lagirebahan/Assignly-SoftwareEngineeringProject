@@ -9,19 +9,16 @@ const [name, setName] = useState("user");
 
 useEffect(() => {
   const storedUser = localStorage.getItem("user");
-  if (storedUser) {
-    const parsed = JSON.parse(storedUser);
-    setName(parsed.name);
+  if (!storedUser) {
+    window.location.href = "/login";
+    return;
   }
+  const parsed = JSON.parse(storedUser);
+  setName(parsed.name);
 }, []);
 
   return (
     <div className="h-full bg-gradient-to-b from-[#2e2e2e] to-[#b6a88b] p-12 overflow-hidden flex flex-col">
-      <div className="flex justify-end mb-4">
-  <span className="text-white font-medium">
-    Hello, {name}
-  </span>
-</div>
 
       <div className="grid grid-cols-[1fr_1.4fr] gap-8 flex-1 min-h-0">
 
@@ -37,7 +34,7 @@ useEffect(() => {
             [&::-webkit-scrollbar-thumb]:bg-gray-400/100"
           
           >
-            {["Group 1", "Group 2", "Group 3", "Group 4", "Group 5", "Group 6", "Group 7", ].map((group,i) => (
+            {["Group 1", "Group 2", "Group 3", "Group 4", "Group 5", "Group 6", "Group 7", "Group 2", "Group 3", "Group 4", "Group 5", "Group 6", "Group 7",].map((group,i) => (
               <Link href="/teams" className="block">
                 <div
                   key={i}

@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import Image from "next/image";
 
@@ -35,6 +36,13 @@ export const AssignlyLogo = () => {
 export default function AppNavbar() {
   const pathname = usePathname();
   const router = useRouter();
+
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (stored) setUser(JSON.parse(stored));
+  }, []);
+
   return (
     <Navbar 
       maxWidth="xl" //isBordered kl butuh
@@ -72,7 +80,7 @@ export default function AppNavbar() {
       {/*this should be on the right(dropdown should drop under profile)*/}
       <NavbarContent as="div" justify="end" className="flex-none">
         {/* <h1>Hello {user?.name || "User"}!</h1> */}
-        <h1 className="text-[#d3af37]">Hello, User!</h1>
+        <h1 className="text-[#d3af37]">Hello, {user?.name || "User"}!</h1>
         <Dropdown placement="bottom-end"  offset={5} crossOffset={90}>
           <DropdownTrigger>
             <Avatar
@@ -81,7 +89,7 @@ export default function AppNavbar() {
               className="transition-transform mr-6 hover:opacity-80 cursor-pointer"
               color="secondary"
               style={{ width: "30px", height: "30px" }}
-              name="Jason Hughes"
+              name={user?.name || "User"}
               src="/default_profile.png"
             />
           </DropdownTrigger>
@@ -100,12 +108,12 @@ export default function AppNavbar() {
               textValue="profile"
             >
               <p className="text-xs text-default-400 px-1">Signed in as</p> {/**no links yet */}
-              <p className="text-sm text-blue-500 font-semibold truncate px-1">zoey@example.com</p>
+              <p className="text-sm text-blue-500 font-semibold truncate px-1">{user?.email || "—"}</p>
             </DropdownItem>
             <DropdownItem key="my_profile" className="p-1">My Profile</DropdownItem>
             <DropdownItem key="my_settings" className="p-1">Settings</DropdownItem>
             <DropdownItem key="notifications" className="p-1">Notifications</DropdownItem>
-            <DropdownItem key="logout" className="text-red-500 p-1" onClick={() => { alert("clicked"); window.location.href = "/login"; }}>
+            <DropdownItem key="logout" className="text-red-500 p-1" onPress={() => { localStorage.removeItem("user"); window.location.href = "/login"; }}>
               Log Out
             </DropdownItem>
           </DropdownMenu>
