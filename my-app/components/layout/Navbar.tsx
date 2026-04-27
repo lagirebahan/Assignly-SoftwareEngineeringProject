@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import Image from "next/image";
 
@@ -34,6 +34,7 @@ export const AssignlyLogo = () => {
 
 export default function AppNavbar() {
   const pathname = usePathname();
+  const router = useRouter();
   return (
     <Navbar 
       maxWidth="xl" //isBordered kl butuh
@@ -74,16 +75,6 @@ export default function AppNavbar() {
         <h1 className="text-[#d3af37]">Hello, User!</h1>
         <Dropdown placement="bottom-end"  offset={5} crossOffset={90}>
           <DropdownTrigger>
-            {/* const userImage = user?.image; // from your user data */}
-            {/* <Avatar
-              isBordered
-              as="button"
-              className="transition-transform"
-              color="secondary"
-              name={user?.name || "User"}
-              size="sm"
-              src={userImage || "/default-avatar.png"}
-            /> */}
             <Avatar
               isBordered
               as="button"
@@ -111,10 +102,10 @@ export default function AppNavbar() {
               <p className="text-xs text-default-400 px-1">Signed in as</p> {/**no links yet */}
               <p className="text-sm text-blue-500 font-semibold truncate px-1">zoey@example.com</p>
             </DropdownItem>
-            <DropdownItem key="profile" className="p-1">My Profile</DropdownItem>
+            <DropdownItem key="my_profile" className="p-1">My Profile</DropdownItem>
             <DropdownItem key="my_settings" className="p-1">Settings</DropdownItem>
             <DropdownItem key="notifications" className="p-1">Notifications</DropdownItem>
-            <DropdownItem key="logout" className="text-red-500 p-1" >
+            <DropdownItem key="logout" className="text-red-500 p-1" onClick={() => { alert("clicked"); window.location.href = "/login"; }}>
               Log Out
             </DropdownItem>
           </DropdownMenu>
@@ -123,134 +114,3 @@ export default function AppNavbar() {
     </Navbar>
   );
 }
-
-// "use client";
-
-// import Image from "next/image";
-// import {
-//   Navbar,
-//   NavbarBrand,
-//   NavbarContent,
-//   NavbarItem,
-//   NavbarMenu,
-//   NavbarMenuItem,
-//   NavbarMenuToggle,
-//   Link,
-//   DropdownItem,
-//   DropdownTrigger,
-//   Dropdown,
-//   DropdownMenu,
-//   Avatar,
-// } from "@heroui/react";
-
-// export const AssignlyLogo = () => {
-//   return (
-//     <Image
-//       src="/icon.png"
-//       alt="Assignly Logo"
-//       width={32}
-//       height={32}
-//       priority
-//     />
-//   );
-// };
-
-// export default function AppNavbar() {
-//   return (
-//     <Navbar isBordered maxWidth="xl">
-
-//       {/* This wrapper spreads everything apart */}
-//       <div className="flex w-full items-center justify-between">
-
-//         {/* LEFT */}
-//         <NavbarContent justify="start">
-//           <NavbarBrand className="gap-2">
-//             <AssignlyLogo />
-//             <p className="font-bold text-inherit">Assignly</p>
-//           </NavbarBrand>
-//         </NavbarContent>
-
-//         {/* CENTER (takes remaining space and centers itself) */}
-//         <NavbarContent
-//           justify="center"
-//           className="hidden sm:flex gap-8 flex-1"
-//         >
-//           <NavbarItem>
-//             <Link color="foreground" href="/">
-//               Home
-//             </Link>
-//           </NavbarItem>
-
-//           <NavbarItem isActive>
-//             <Link aria-current="page" color="secondary" href="/teams">
-//               Teams
-//             </Link>
-//           </NavbarItem>
-//         </NavbarContent>
-
-//         {/* RIGHT */}
-//         <NavbarContent justify="end" className="gap-4">
-
-//           {/* Mobile toggle */}
-//           <NavbarMenuToggle className="sm:hidden" />
-
-//           <Dropdown placement="bottom-end">
-//             <DropdownTrigger>
-//               <Avatar
-//                 isBordered
-//                 as="button"
-//                 className="transition-transform w-7 h-7"
-//                 color="secondary"
-//                 name="Jason Hughes"
-//                 src="/default_profile.png"
-//               />
-//             </DropdownTrigger>
-
-//             <DropdownMenu aria-label="Profile Actions" variant="flat">
-//               <DropdownItem
-//                 key="profile_header"
-//                 className="h-14 gap-2"
-//                 isReadOnly
-//               >
-//                 <p className="text-xs text-default-400">
-//                   Signed in as
-//                 </p>
-//                 <p className="text-sm font-semibold truncate">
-//                   zoey@example.com
-//                 </p>
-//               </DropdownItem>
-
-//               <DropdownItem key="profile">
-//                 My Profile
-//               </DropdownItem>
-
-//               <DropdownItem key="settings">
-//                 Settings
-//               </DropdownItem>
-
-//               <DropdownItem key="logout" color="danger">
-//                 Log Out
-//               </DropdownItem>
-//             </DropdownMenu>
-//           </Dropdown>
-//         </NavbarContent>
-
-//       </div>
-
-//       {/* MOBILE MENU */}
-//       <NavbarMenu>
-//         <NavbarMenuItem>
-//           <Link href="/" size="lg">
-//             Home
-//           </Link>
-//         </NavbarMenuItem>
-//         <NavbarMenuItem>
-//           <Link href="/teams" size="lg">
-//             Teams
-//           </Link>
-//         </NavbarMenuItem>
-//       </NavbarMenu>
-
-//     </Navbar>
-//   );
-// }

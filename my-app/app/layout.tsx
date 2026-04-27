@@ -2,6 +2,7 @@ import AppNavbar from "@/components/layout/Navbar";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
 
 import { Poppins } from "next/font/google";
 
@@ -36,10 +37,12 @@ export default function RootLayout({
       <body
         className={`${poppins.variable}  antialiased flex flex-col h-full`}
       >
-        <AppNavbar />
-        <main className="flex-1 min-h-0 overflow-hidden">
-          {children}
-        </main>
+        <Providers>
+          <AppNavbar />
+          <main className="flex-1 min-h-0 overflow-auto">
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   );
