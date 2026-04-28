@@ -12,7 +12,6 @@ import { AddTeamCard } from "@/components/teams/AddTeamCard";
 
 
 export default function TeamPage() {
-  // Toggle this to preview both states:
   const [teams, setTeams] = useState<Team[]>(MOCK_TEAMS);
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
@@ -38,7 +37,7 @@ export default function TeamPage() {
     }
 
     const newTeam = await res.json();
-    
+
     setTeams((prev) => [...prev, newTeam]);
     setShowModal(false)
 
@@ -103,14 +102,43 @@ export default function TeamPage() {
               outline: "none",
             }}
           />
-          <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#9ca3af", fontSize: 16 }}>
+          <span 
+            style={{ 
+              position: "absolute", 
+              left: 14, 
+              top: "50%", 
+              transform: "translateY(-50%)", 
+              color: "#9ca3af", 
+              fontSize: 16 
+            }}
+          >
             🔎
           </span>
         </div>
-        <button style={{ padding: "9px 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.25)", backgroundColor: "rgba(255,255,255,0.1)", cursor: "pointer", color: "white", fontSize: 16 }}>
+        <button 
+          style={{ 
+            padding: "9px 12px", 
+            borderRadius: 10, 
+            border: "1px solid rgba(255,255,255,0.25)", 
+            backgroundColor: "rgba(255,255,255,0.1)", 
+            cursor: "pointer", 
+            color: "white", 
+            fontSize: 16 
+          }}
+        >
           ⇄
         </button>
-        <button style={{ padding: "9px 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.25)", backgroundColor: "rgba(255,255,255,0.1)", cursor: "pointer", color: "white", fontSize: 16 }}>
+        <button 
+          style={{ 
+            padding: "9px 12px", 
+            borderRadius: 10, 
+            border: "1px solid rgba(255,255,255,0.25)", 
+            backgroundColor: "rgba(255,255,255,0.1)", 
+            cursor: "pointer", 
+            color: "white", 
+            fontSize: 16 
+          }}
+        >
           ☰
         </button>
       </div>

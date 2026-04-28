@@ -5,4 +5,5 @@ export interface Task {
   title: string;
   hasAttachment: boolean;
   status: TaskStatus;
+  deadline?: string;
 }

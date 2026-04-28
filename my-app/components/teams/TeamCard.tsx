@@ -1,15 +1,29 @@
+"use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { StatusDot } from "./StatusDot";
 import { ProgressBar } from "./ProgressBar";
 import { Team } from "@/types/team";
 import { getTeamProgress } from "@/utils/team";
-import { TaskStatus } from "@/types/task";
 import { getMemberStatus } from "@/utils/GetMemberStatus";
+import { button } from "@heroui/theme";
+import { span } from "framer-motion/client";
 
-export function TeamCard({ team }: { team: Team }) {
+export function TeamCard({ team, onDelete }: { team: Team; onDelete?:(teamId:string)=>void }) {
   const hasAlert = team.members.some((m) => getMemberStatus(m) !== "verified");
   const progress = getTeamProgress(team.members)
+  const isCompleted = progress === 100
+
+  const [hovered, setHovered] = useState(false);
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if(window.confirm(`Delete "${team.name}"? This can't be undone.`)){
+      onDelete?.(team.id);
+    }
+  }
+
   return (
     <Link href={`/teams/${team.id}`} style={{ textDecoration: "none" }}>
       <div
@@ -19,21 +33,34 @@ export function TeamCard({ team }: { team: Team }) {
           padding: "20px 22px",
           cursor: "pointer",
           transition: "transform 0.15s ease, box-shadow 0.15s ease",
-          boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+          boxShadow: hovered ? "0 8px 24px rgba(0,0,0,0.14)" : "0 2px 12px rgba(0,0,0,0.08)",
+          transform: hovered?"translateY(-3px)" :  "translateY(0)",
           height: "100%",
           position: "relative",
         }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLDivElement).style.transform = "translateY(-3px)";
-          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 24px rgba(0,0,0,0.14)";
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
-          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 12px rgba(0,0,0,0.08)";
-        }}
+        onMouseEnter={()=> setHovered(true)}
+        onMouseLeave={()=> setHovered(false)}
       >
-        {/* Alert indicator on card level */}
-        {hasAlert && (
+        {isCompleted && hovered ? (
+          <button
+          onClick={handleDeleteClick}
+          title="Delete this team"
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 10,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            color: "#ef4444",
+            padding: 2,
+            lineHeight: 1,
+            fontSize: 18,
+          }}
+          >
+            🗑️
+          </button>
+        ): !isCompleted && hasAlert ? (
           <span
             style={{
               position: "absolute",
@@ -50,11 +77,23 @@ export function TeamCard({ team }: { team: Team }) {
                 : "0 0 6px #f97316aa",
             }}
           />
-        )}
+        ) : null}
 
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 10 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 4 }}>
           {team.name}
         </h2>
+
+        {/*joincode */}
+        <p
+          style={{
+            fontSize: 11,
+            color: "#9ca3af",
+            marginBottom: 10,
+            fontFamily: "monospace",
+            letterSpacing: "0.1em",
+          }}>
+            Code:{team.joinCode}
+          </p>
 
         <ProgressBar value={progress} />
 
@@ -75,6 +114,18 @@ export function TeamCard({ team }: { team: Team }) {
             >
               <span style={{ color: "#9ca3af", marginRight: 5 }}>{i + 1}.</span>
               {member.name}
+
+              {member.id === team.leaderId && (
+                <span 
+                  title="Leader" 
+                  style={{
+                    marginLeft:4, 
+                    fontSize:11
+                  }}
+                >
+                  👑
+                </span>
+              )}
               <StatusDot status={getMemberStatus(member)} />
             </li>
           ))}

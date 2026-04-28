@@ -5,6 +5,8 @@ export interface Team {
   name: string;
   // progress: number;
   members: TeamMember[];
+  joinCode: string;
+  leaderId: string;
 }
 
 export interface TeamMember {
