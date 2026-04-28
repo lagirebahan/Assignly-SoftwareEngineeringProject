@@ -1,9 +1,9 @@
-import { TaskStatus } from "@/types/team";
+import { TaskStatus } from "@/types/task";
 
 export function StatusDot({ status }: { status: TaskStatus }) {
-  if (status === "done") return null;
-  const color = status === "unfinished" ? "#ef4444" : "#f97316";
-  const title = status === "unfinished" ? "Unfinished task" : "Awaiting leader verification";
+  if (status === "verified") return null;
+  const color = status === "pending" ? "#ef4444" : "#f97316";
+  const title = status === "pending" ? "Unfinished task" : "Awaiting leader verification";
   return (
     <span
       title={title}

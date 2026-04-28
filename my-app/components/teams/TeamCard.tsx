@@ -7,8 +7,6 @@ import { ProgressBar } from "./ProgressBar";
 import { Team } from "@/types/team";
 import { getTeamProgress } from "@/utils/team";
 import { getMemberStatus } from "@/utils/GetMemberStatus";
-import { button } from "@heroui/theme";
-import { span } from "framer-motion/client";
 
 export function TeamCard({ team, onDelete }: { team: Team; onDelete?:(teamId:string)=>void }) {
   const hasAlert = team.members.some((m) => getMemberStatus(m) !== "verified");
