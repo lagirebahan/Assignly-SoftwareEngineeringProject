@@ -38,8 +38,7 @@ export default function TeamPage() {
     }
 
     const newTeam = await res.json();
-
-    // assuming API returns created team
+    
     setTeams((prev) => [...prev, newTeam]);
     setShowModal(false)
 

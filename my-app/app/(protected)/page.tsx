@@ -1,7 +1,9 @@
 "use client";
 
+import { StatusRow } from "@/components/ui/StatusRow";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Calendar } from "@/components/ui/Calendar";
 
 export default function HomePage() {
 
@@ -48,48 +50,32 @@ useEffect(() => {
         </div>
 
         {/* RIGHT SIDE */}
-        <div className="space-y-8 overflow-hidden vertical-align-middle py-8">
+        <div className="flex flex-col min-h-0 gap-8 pt-8">
+          <div className="flex-1 overflow-y-auto min-h-0
+            [&::-webkit-scrollbar]:w-1.5
+            [&::-webkit-scrollbar-track]:bg-transparent
+            [&::-webkit-scrollbar-thumb]:rounded-full
+            [&::-webkit-scrollbar-thumb]:bg-gray-400/100"
+          
+          >
+            <div className="bg-gray-200 rounded-2xl p-6 shadow-md">
+              <Calendar/>
+              <div className="border-t border-gray-300 my-5"/>
 
-          {/* STATUS CARD */}
-          <div className="bg-gray-200 rounded-2xl p-10 shadow-md">
-            <h2 className="text-center font-semibold text-lg text-black mb-4 " color-black>Status</h2>
+              <h2 className="text-center font-semibold text-sm text-black uppercase tracking-widest mb-4 ">Status</h2>
 
-            <div className="space-y-4">
-              <StatusRow label="Waiting for validation" count={1} />
-              <StatusRow label="Validated" count={1} />
-              <StatusRow label="On Progress" count={1} />
+              <div className="space-y-3">
+                <StatusRow label="On Progress" count={3} color="#f97316" />
+                <StatusRow label="Validated" count={1} color="#ef4444"/> 
+                <StatusRow label="On Progress" count={1} color="#a855f7"/>
+              </div>
             </div>
           </div>
-
-          {/* RECENT TEAMS */}
-          <div className="bg-gray-200 rounded-2xl p-6 shadow-md">
-            <h2 className="text-center font-semibold text-lg text-black mb-6">
-              Recent Teams
-            </h2>
-            {/*logic recency blm ada, and jg gambar tim kl pake jg blm*/}
-            <div className="flex gap-6 justify-center">
-              {[1, 2, 3].map((team) => (
-                <div
-                  key={team}
-                  className="w-24 h-24 border border-gray-400 rounded-md"
-                />
-              ))}
-            </div>
-          </div>
+          
+          
 
         </div>
       </div>
-    </div>
-  )
-}
-
-/* reusable component line 34 */
-
-function StatusRow({ label, count }: { label: string; count: number }) {
-  return (
-    <div className="flex justify-between items-center px-5"> {/* border border-black rounded-md */}
-      <span className="text-gray-700 ">{label}</span>
-      <span className="text-red-500 font-semibold">{count}</span>
     </div>
   )
 }
