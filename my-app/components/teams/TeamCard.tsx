@@ -4,9 +4,11 @@ import { StatusDot } from "./StatusDot";
 import { ProgressBar } from "./ProgressBar";
 import { Team } from "@/types/team";
 import { getTeamProgress } from "@/utils/team";
+import { TaskStatus } from "@/types/task";
+import { getMemberStatus } from "@/utils/GetMemberStatus";
 
 export function TeamCard({ team }: { team: Team }) {
-  const hasAlert = team.members.some((m) => m.taskStatus !== "done");
+  const hasAlert = team.members.some((m) => getMemberStatus(m) !== "verified");
   const progress = getTeamProgress(team.members)
   return (
     <Link href={`/teams/${team.id}`} style={{ textDecoration: "none" }}>
@@ -40,10 +42,10 @@ export function TeamCard({ team }: { team: Team }) {
               width: 10,
               height: 10,
               borderRadius: "50%",
-              backgroundColor: team.members.some((m) => m.taskStatus === "unfinished")
+              backgroundColor: team.members.some((m) => getMemberStatus(m) === "pending")
                 ? "#ef4444"
                 : "#f97316",
-              boxShadow: team.members.some((m) => m.taskStatus === "unfinished")
+              boxShadow: team.members.some((m) => getMemberStatus(m) === "pending")
                 ? "0 0 6px #ef4444aa"
                 : "0 0 6px #f97316aa",
             }}
@@ -73,7 +75,7 @@ export function TeamCard({ team }: { team: Team }) {
             >
               <span style={{ color: "#9ca3af", marginRight: 5 }}>{i + 1}.</span>
               {member.name}
-              <StatusDot status={member.taskStatus} />
+              <StatusDot status={getMemberStatus(member)} />
             </li>
           ))}
         </ol>
