@@ -1,23 +1,19 @@
+import { MOCK_TEAMS } from "@/data/mockTeam";
+
 export async function POST(req: Request) {
   const { code } = await req.json();
+  
 
-  // fake lookup
-  if (code !== "ABC-12345") {
+  // const team = await getTeamByJoinCode(joinCode);
+  const team = MOCK_TEAMS.find((t) => t.joinCode === code);
+
+  if (!team) {
     return new Response("Invalid code", { status: 400 });
   }
 
-  const team = {
-    id: "group5",
-    name: "Group 5",
-    progress: 20,
-    members: [
-      { name: "Alexio Clive Vandana", taskStatus: "unfinished" },
-      { name: "Bryant Evant Mulya", taskStatus: "unfinished" },
-      { name: "Christian Jordan Dwisaputra", taskStatus: "unfinished" },
-      { name: "Joselyn Patricia Prasetyo", taskStatus: "unverified" },
-      { name: "Nathan", taskStatus: "done" },
-    ],
-  };
-
   return Response.json(team);
 }
+
+// function getTeamByJoinCode(joinCode: string) : team {
+
+// }

@@ -2,22 +2,42 @@ import { useState } from "react";
 
 const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
-const MOCK_DOTS: Record<string, string[]> = {
-  "2025-4-1":  ["#6b7280"],
-  "2025-4-8":  ["#a855f7"],
-  "2025-4-9":  ["#6b7280"],
-  "2025-4-11": ["#6b7280"],
-  "2025-4-16": ["#ef4444"],
-  "2025-4-17": ["#ef4444"],
-  "2025-4-20": ["#ef4444"],
-  "2025-4-24": ["#ef4444"],
-  "2025-4-27": ["#22c55e"],
-  "2025-4-28": ["#6b7280"],
-  "2025-4-29": ["#22c55e"],
-  "2025-4-30": ["#6b7280"],
+export type DayTask = {
+  teamId :string;
+  teamName : string;
+  taskId :string;
+  taskTitle : string;
+  status : "pending"|"unverified"|"verified";
 };
 
-export function Calendar() {
+const STATUS_COLOR: Record<DayTask["status"], string> = {
+  unverified:  "#f97316",
+  pending:  "#ef4444",
+  verified:  "#22c55e",
+};
+
+const STATUS_PRIORITY: Record<DayTask["status"], number> = {
+  pending:  0,
+  unverified:  1,
+  verified:  2,
+};
+
+export const MOCK_DAY_TASKS: Record<string, DayTask[]> = {
+  "2026-4-29": [
+    { teamId: "group1", teamName: "Group 1", taskId: "T-01", taskTitle: "Write report", status: "pending" },
+    { teamId: "group2", teamName: "Group 2", taskId: "T-02", taskTitle: "Submit slides", status: "verified" },
+  ],
+  "2026-4-30": [
+    { teamId: "group3", teamName: "Group 3", taskId: "T-03", taskTitle: "Review PR", status: "unverified" },
+  ],
+};
+
+interface CalendarProps{
+  selectedDay:string|null;
+  onSelectDay:(key:string|null)=>void;
+}
+
+export function Calendar({selectedDay, onSelectDay} : CalendarProps) {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth()); // 0-indexed
@@ -37,7 +57,6 @@ export function Calendar() {
     else setMonth(m => m + 1);
   };
 
-  // Build grid cells
   const cells: { day: number; current: boolean }[] = [];
   for (let i = firstDay - 1; i >= 0; i--) {
     cells.push({ day: daysInPrevMonth - i, current: false });
@@ -45,10 +64,13 @@ export function Calendar() {
   for (let d = 1; d <= daysInMonth; d++) {
     cells.push({ day: d, current: true });
   }
-  const remaining = 42 - cells.length;
+  const remaining = (7-(cells.length % 7)) % 7;
   for (let d = 1; d <= remaining; d++) {
     cells.push({ day: d, current: false });
   }
+
+  const rows: typeof cells[] = [];
+  for (let i = 0; i< cells.length; i+= 7) rows.push(cells.slice(i, i+7));
 
   return (
     <div>
@@ -71,25 +93,34 @@ export function Calendar() {
         {cells.map((cell, i) => {
           const isToday = cell.current && cell.day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
           const key = `${year}-${month + 1}-${cell.day}`;
-          const dots = cell.current ? (MOCK_DOTS[key] ?? []) : [];
+          const tasks = cell.current ? (MOCK_DAY_TASKS[key] ?? []) : [];
+          const isSelected = cell.current && selectedDay === key; 
+          const dotColor = tasks.length > 0
+            ? STATUS_COLOR[tasks.reduce((best, t) =>
+              STATUS_PRIORITY[t.status] <STATUS_PRIORITY[best.status] ? t :best
+            ).status]
+            :null;
 
           return (
-            <div key={i} className="flex flex-col items-center py-0.5">
+            <div 
+              key={i} 
+              className="flex flex-col items-center py-0.5"
+              onClick={()=> cell.current && onSelectDay(isSelected ? null : key)}>
               <div
                 className="w-7 h-7 flex items-center justify-center rounded-full text-xs font-medium"
                 style={{
-                  backgroundColor: isToday ? "#0ea5e9" : "transparent",
-                  color: isToday ? "white" : cell.current ? "#1f2937" : "#d1d5db",
-                  fontWeight: isToday ? 700 : undefined,
+                  backgroundColor: isSelected ? "#0ea5e9" : isToday ? "#0ea5e9" : "transparent",
+                  color: isSelected || isToday ? "white" : cell.current ? "#1f2937" : "#d1d5db",
+                  fontWeight: isToday || isSelected ? 700 : undefined,
                 }}
               >
                 {cell.day}
               </div>
               {/* Dots */}
               <div className="flex gap-0.5 mt-0.5 min-h-[6px]">
-                {dots.map((color, di) => (
-                  <span key={di} style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: color, display: "inline-block" }} />
-                ))}
+                {dotColor && (
+                  <span style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: dotColor, display: "inline-block" }} />
+                )}
               </div>
             </div>
           );
