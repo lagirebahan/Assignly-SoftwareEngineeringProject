@@ -1,22 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Legend } from "@/components/tasks/Legend";
-import { MOCK_MEMBERS } from "@/data/mockMember";
+import { MOCK_TEAMS } from "@/data/mockTeam";
 import { MemberColumn } from "@/components/tasks/MemberColumn";
 
-export default function GroupPage({
-  params,
-}: {
-  params: { teamId: string };
-}) {
+export default function GroupPage() { // 👈 remove params prop entirely
   const router = useRouter();
-  const teamId = params?.teamId ?? "team1";
+  const params = useParams();
+  const teamId = (params?.teamId as string) ?? "group1";
+
+  const teamData = MOCK_TEAMS.find(t => t.id === teamId);
+  const members = teamData?.members ?? [];
 
   // In real app: derive from session/role
   const [isLeader] = useState(true);
-  const [groupName, setGroupName] = useState("Group 1");
+  const [groupName, setGroupName] = useState(teamData?.name ?? "Unknown Group");
   const [editingName, setEditingName] = useState(false);
 
   return (
@@ -95,13 +95,13 @@ export default function GroupPage({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${MOCK_MEMBERS.length}, 1fr)`,
+          gridTemplateColumns: `repeat(${members.length}, 1fr)`,
           gap: 16,
           flex: 1,
           minHeight: 0,
         }}
       >
-        {MOCK_MEMBERS.map((member) => (
+        {members.map((member) => (
           <MemberColumn
             key={member.id}
             member={member}

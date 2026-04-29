@@ -48,7 +48,7 @@ export const MOCK_TEAMS: Team[] = [
     joinCode: "MN34OP56",
     leaderId: "m1",
     members: [
-      { id: "m1", name: "Alexio Clive Vandana",        tasks: [{ id: "t1", title: "Task 1", hasAttachment: true,  status: "verified",   deadline: "2025-05-25" }] },
+      { id: "m1", name: "Alexio Clive Vandana",        },
       { id: "m2", name: "Bryant Evant Mulya",           tasks: [{ id: "t1", title: "Task 1", hasAttachment: true,  status: "verified",   deadline: "2025-05-25" }] },
       { id: "m3", name: "Christian Jordan Dwisaputra",  tasks: [{ id: "t1", title: "Task 1", hasAttachment: true,  status: "verified",   deadline: "2025-05-25" }] },
       { id: "m4", name: "Joselyn Patricia Prasetyo",    tasks: [{ id: "t1", title: "Task 1", hasAttachment: false, status: "pending",    deadline: "2025-05-25" }] },

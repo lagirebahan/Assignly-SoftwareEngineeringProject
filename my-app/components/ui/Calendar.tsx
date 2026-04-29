@@ -3,23 +3,23 @@ import { useState } from "react";
 const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
 export type DayTask = {
-  teamId :string;
-  teamName : string;
-  taskId :string;
-  taskTitle : string;
-  status : "pending"|"unverified"|"verified";
+  teamId: string;
+  teamName: string;
+  taskId: string;
+  taskTitle: string;
+  status: "pending" | "unverified" | "verified";
 };
 
 const STATUS_COLOR: Record<DayTask["status"], string> = {
-  unverified:  "#f97316",
-  pending:  "#ef4444",
-  verified:  "#22c55e",
+  pending: "#ef4444",
+  unverified: "#f97316",
+  verified: "#22c55e",
 };
 
 const STATUS_PRIORITY: Record<DayTask["status"], number> = {
-  pending:  0,
-  unverified:  1,
-  verified:  2,
+  pending: 0,
+  unverified: 1,
+  verified: 2,
 };
 
 export const MOCK_DAY_TASKS: Record<string, DayTask[]> = {
@@ -32,20 +32,26 @@ export const MOCK_DAY_TASKS: Record<string, DayTask[]> = {
   ],
 };
 
-interface CalendarProps{
-  selectedDay:string|null;
-  onSelectDay:(key:string|null)=>void;
+interface CalendarProps {
+  selectedDay: string | null;
+  onSelectDay: (key: string | null) => void;
 }
 
-export function Calendar({selectedDay, onSelectDay} : CalendarProps) {
+export function Calendar({ selectedDay, onSelectDay }: CalendarProps) {
   const today = new Date();
-  const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth()); // 0-indexed
+  // Fix: snapshot these so they never drift
+  const todayDate = today.getDate();
+  const todayMonth = today.getMonth();
+  const todayYear = today.getFullYear();
+  const todayKey = `${todayYear}-${todayMonth + 1}-${todayDate}`;
+
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+  const [year, setYear] = useState(todayYear);
+  const [month, setMonth] = useState(todayMonth);
 
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrevMonth = new Date(year, month, 0).getDate();
-
   const monthName = new Date(year, month).toLocaleString("default", { month: "long" });
 
   const prevMonth = () => {
@@ -57,20 +63,20 @@ export function Calendar({selectedDay, onSelectDay} : CalendarProps) {
     else setMonth(m => m + 1);
   };
 
+  // Build cells — only pad end row to complete the week, no 42-cell fill
   const cells: { day: number; current: boolean }[] = [];
-  for (let i = firstDay - 1; i >= 0; i--) {
-    cells.push({ day: daysInPrevMonth - i, current: false });
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    cells.push({ day: d, current: true });
-  }
-  const remaining = (7-(cells.length % 7)) % 7;
-  for (let d = 1; d <= remaining; d++) {
-    cells.push({ day: d, current: false });
+  for (let i = firstDay - 1; i >= 0; i--) cells.push({ day: daysInPrevMonth - i, current: false });
+  for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d, current: true });
+  const tail = cells.length % 7;
+  if (tail !== 0) {
+    for (let d = 1; d <= 7 - tail; d++) cells.push({ day: d, current: false });
   }
 
   const rows: typeof cells[] = [];
-  for (let i = 0; i< cells.length; i+= 7) rows.push(cells.slice(i, i+7));
+  for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
+
+  // The "active" day drives the blue dot — selected if set, otherwise today
+  const activeDotKey = selectedDay ?? todayKey;
 
   return (
     <div>
@@ -89,42 +95,78 @@ export function Calendar({selectedDay, onSelectDay} : CalendarProps) {
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-7 gap-y-0.5">
-        {cells.map((cell, i) => {
-          const isToday = cell.current && cell.day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-          const key = `${year}-${month + 1}-${cell.day}`;
-          const tasks = cell.current ? (MOCK_DAY_TASKS[key] ?? []) : [];
-          const isSelected = cell.current && selectedDay === key; 
-          const dotColor = tasks.length > 0
-            ? STATUS_COLOR[tasks.reduce((best, t) =>
-              STATUS_PRIORITY[t.status] <STATUS_PRIORITY[best.status] ? t :best
-            ).status]
-            :null;
+      <div className="flex flex-col">
+        {rows.map((row, ri) => (
+          <div key={ri} className="grid grid-cols-7 gap-y-0.5">
+            {row.map((cell, ci) => {
+              const key = `${year}-${month + 1}-${cell.day}`;
+              const isToday = cell.current && key === todayKey;
+              const isSelected = cell.current && selectedDay === key;
+              const isActiveDot = cell.current && key === activeDotKey;
 
-          return (
-            <div 
-              key={i} 
-              className="flex flex-col items-center py-0.5"
-              onClick={()=> cell.current && onSelectDay(isSelected ? null : key)}>
-              <div
-                className="w-7 h-7 flex items-center justify-center rounded-full text-xs font-medium"
-                style={{
-                  backgroundColor: isSelected ? "#0ea5e9" : isToday ? "#0ea5e9" : "transparent",
-                  color: isSelected || isToday ? "white" : cell.current ? "#1f2937" : "#d1d5db",
-                  fontWeight: isToday || isSelected ? 700 : undefined,
-                }}
-              >
-                {cell.day}
-              </div>
-              {/* Dots */}
-              <div className="flex gap-0.5 mt-0.5 min-h-[6px]">
-                {dotColor && (
-                  <span style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: dotColor, display: "inline-block" }} />
-                )}
-              </div>
-            </div>
-          );
-        })}
+              // Today with no selection → bold blue number, no circle bg
+              // Today when something else selected → bold blue number, no circle bg  
+              // Selected (non-today) → filled blue circle
+              const tasks = cell.current ? (MOCK_DAY_TASKS[key] ?? []) : [];
+              const taskDotColor = tasks.length > 0
+                ? STATUS_COLOR[tasks.reduce((best, t) =>
+                    STATUS_PRIORITY[t.status] < STATUS_PRIORITY[best.status] ? t : best
+                  ).status]
+                : null;
+
+              // Number styling
+              let bgColor = "transparent";
+              let textColor = cell.current ? "#1f2937" : "#d1d5db";
+              let fontWeight: number | undefined = undefined;
+
+              if (isSelected && !isToday) {
+                // Another day selected → filled blue circle
+                bgColor = "#0ea5e9";
+                textColor = "white";
+                fontWeight = 700;
+              } else if (isToday) {
+                // Today → always bold blue text, no fill
+                textColor = "#0ea5e9";
+                fontWeight = 700;
+              }
+
+              // Dot: blue for active (today or selected), task color otherwise
+              const showBlueDot = isActiveDot;
+              const showTaskDot = !showBlueDot && !!taskDotColor;
+
+              return (
+                <div
+                  key={ci}
+                  className="flex flex-col items-center py-0.5"
+                  onClick={() => cell.current && onSelectDay(isSelected ? null : key)}
+                  onMouseEnter={() => cell.current && setHoveredKey(key)}
+                  onMouseLeave={() => setHoveredKey(null)}
+                >
+                  <div
+                    className={`w-7 h-7 flex items-center justify-center rounded-full text-xs ${cell.current ? "cursor-pointer" : ""}`}
+                    style={{ 
+                      backgroundColor: bgColor !== "transparent" 
+                        ? bgColor : hoveredKey === key && cell.current 
+                        ? "#acaab3" : "transparent", 
+                      color: textColor, 
+                      fontWeight 
+                    }}
+                  >
+                    {cell.day}
+                  </div>
+                  <div className="flex gap-0.5 mt-0.5 min-h-[6px]">
+                    {showBlueDot && (
+                      <span style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: "#0ea5e9", display: "inline-block" }} />
+                    )}
+                    {showTaskDot && (
+                      <span style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: taskDotColor!, display: "inline-block" }} />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );

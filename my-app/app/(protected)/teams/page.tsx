@@ -9,18 +9,40 @@ import { Team } from "@/types/team";
 
 import { MOCK_TEAMS } from "@/data/mockTeam";
 import { AddTeamCard } from "@/components/teams/AddTeamCard";
-
+import { getMemberStatus } from "@/utils/GetMemberStatus";
+import { MOCK_SESSION } from "@/data/mockSession";
 
 export default function TeamPage() {
   const [teams, setTeams] = useState<Team[]>(MOCK_TEAMS);
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
+  const [showFilter, setShowFilter] = useState(false);
+  const [filters, setFilters] = useState({
+    leading: false,
+    waitingCompletion: false,
+    waitingVerification: false,
+    completed: false,
+  });
+
+  const toggleFilter = (key: keyof typeof filters) => {
+    setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const hasTeams = teams.length > 0;
 
-  const filteredTeams = teams.filter((t) =>
-    t.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredTeams = teams
+  .filter((t) => t.name.toLowerCase().includes(search.toLowerCase()))
+  .filter((t) => {
+    const anyActive = Object.values(filters).some(Boolean);
+    if (!anyActive) return true; // no filter = show all
+
+    if (filters.leading && t.leaderId === MOCK_SESSION.id) return true;
+    if (filters.waitingCompletion && t.members.some((m) => getMemberStatus(m) === "pending")) return true;
+    if (filters.waitingVerification && t.members.some((m) => getMemberStatus(m) === "unverified")) return true;
+    if (filters.completed && t.members.every((m) => getMemberStatus(m) === "verified")) return true;
+
+    return false;
+  });
 
   const handleCreateTeam = async (name:string) => {
     try {
@@ -115,32 +137,96 @@ export default function TeamPage() {
             🔎
           </span>
         </div>
-        <button 
-          style={{ 
-            padding: "9px 12px", 
-            borderRadius: 10, 
-            border: "1px solid rgba(255,255,255,0.25)", 
-            backgroundColor: "rgba(255,255,255,0.1)", 
-            cursor: "pointer", 
-            color: "white", 
-            fontSize: 16 
-          }}
-        >
-          ⇄
-        </button>
-        <button 
-          style={{ 
-            padding: "9px 12px", 
-            borderRadius: 10, 
-            border: "1px solid rgba(255,255,255,0.25)", 
-            backgroundColor: "rgba(255,255,255,0.1)", 
-            cursor: "pointer", 
-            color: "white", 
-            fontSize: 16 
-          }}
-        >
-          ☰
-        </button>
+        
+        <div style={{ position: "relative" }}>
+          <button
+            onClick={() => setShowFilter((v) => !v)}
+            style={{
+              padding: "9px 12px",
+              borderRadius: 10,
+              border: "1px solid rgba(255,255,255,0.25)",
+              backgroundColor: Object.values(filters).some(Boolean)
+                ? "rgba(255,255,255,0.3)"  // lit up when active
+                : "rgba(255,255,255,0.1)",
+              cursor: "pointer",
+              color: "white",
+              fontSize: 16,
+            }}
+          >
+            ⇄
+          </button>
+
+          {showFilter && (
+            <div style={{
+              position: "absolute",
+              top: "calc(100% + 8px)",
+              right: 0,
+              backgroundColor: "white",
+              borderRadius: 12,
+              boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+              padding: "8px 0",
+              minWidth: 220,
+              zIndex: 100,
+            }}>
+              {[
+                { key: "leading",             label: "Teams you're leading", dot: null },
+                { key: "waitingCompletion",   label: "Waiting for completion", dot: "#ef4444" },
+                { key: "waitingVerification", label: "Waiting for verification", dot: "#f97316" },
+                { key: "completed",           label: "Completed", dot: "#22c55e" },
+              ].map(({ key, label, dot }) => (
+                <div
+                  key={key}
+                  onClick={() => toggleFilter(key as keyof typeof filters)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "9px 16px",
+                    cursor: "pointer",
+                    backgroundColor: filters[key as keyof typeof filters]
+                      ? "rgba(0,0,0,0.05)"
+                      : "transparent",
+                  }}
+                >
+                  {/* Checkbox */}
+                  <div style={{
+                    width: 16, height: 16, borderRadius: 4,
+                    border: "1.5px solid #d1d5db",
+                    backgroundColor: filters[key as keyof typeof filters] ? "#111827" : "white",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0,
+                  }}>
+                    {filters[key as keyof typeof filters] && (
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                        <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </div>
+
+                  {/* Color dot */}
+                  {dot && (
+                    <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: dot, display: "inline-block", flexShrink: 0 }} />
+                  )}
+
+                  <span style={{ fontSize: 13, color: "#111827" }}>{label}</span>
+                </div>
+              ))}
+
+              {/* Clear all */}
+              {Object.values(filters).some(Boolean) && (
+                <>
+                  <div style={{ borderTop: "1px solid #f3f4f6", margin: "6px 0" }} />
+                  <div
+                    onClick={() => setFilters({ leading: false, waitingCompletion: false, waitingVerification: false, completed: false })}
+                    style={{ padding: "8px 16px", cursor: "pointer", fontSize: 12, color: "#9ca3af" }}
+                  >
+                    Clear all
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Body */}

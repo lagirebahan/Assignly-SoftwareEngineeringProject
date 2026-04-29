@@ -12,5 +12,5 @@ export interface Team {
 export interface TeamMember {
   id: string;
   name: string;
-  tasks: Task[];
+  tasks?: Task[];
 }
