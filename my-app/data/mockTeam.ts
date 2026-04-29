@@ -39,7 +39,7 @@ export const MOCK_TEAMS: Team[] = [
       { id: "m2", name: "Bryant Evant Mulya",           tasks: [{ id: "t1", title: "Task 1", hasAttachment: true,  status: "verified",   deadline: "2025-05-20" }] },
       { id: "m3", name: "Christian Jordan Dwisaputra",  tasks: [{ id: "t1", title: "Task 1", hasAttachment: true,  status: "unverified", deadline: "2025-05-20" }] },
       { id: "m4", name: "Joselyn Patricia Prasetyo",    tasks: [{ id: "t1", title: "Task 1", hasAttachment: false, status: "verified",   deadline: "2025-05-20" }] },
-      { id: "m5", name: "Nathan",                       tasks: [{ id: "t1", title: "Task 1", hasAttachment: false, status: "verified",   deadline: "2025-05-20" }] },
+      
     ],
   },
   {
