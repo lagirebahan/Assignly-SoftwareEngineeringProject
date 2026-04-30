@@ -7,7 +7,7 @@ import { Calendar,MOCK_DAY_TASKS, DayTask } from "@/components/ui/Calendar";
 
 const MOCK_UPCOMING_TASKS = [
   { teamId: "group1", teamName: "Group 1", taskId: "T-01", taskTitle: "Write report", deadline: "2026-05-02", status: "pending" as const },
-  { teamId: "group2", teamName: "Group 2", taskId: "T-02", taskTitle: "Submit slides", deadline: "2026-04-30", status: "verified" as const },
+  { teamId: "group2", teamName: "Group 2", taskId: "T-02", taskTitle: "Submit slides", deadline: "2026-04-30", status: "unverified" as const },
   { teamId: "group3", teamName: "Group 3", taskId: "T-03", taskTitle: "Review PR", deadline: "2026-05-05", status: "unverified" as const },
   { teamId: "group1", teamName: "Group 1", taskId: "T-04", taskTitle: "Update README", deadline: "2026-05-01", status: "pending" as const },
 ];
@@ -64,7 +64,9 @@ const dayTasks = selectedDay ? (MOCK_DAY_TASKS[selectedDay]??[]) : [];
             [&::-webkit-scrollbar-thumb]:bg-gray-400/100"
           
           >
-            {MOCK_UPCOMING_TASKS.map((task,i) => (
+            {[...MOCK_UPCOMING_TASKS]
+            .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime())
+            .map((task, i) => (
               <Link key={i} href={`/teams/${task.teamId}`} className="block">
                 <div className="bg-gray-200 hover:bg-gray-300 transition-colors rounded-2xl px-5 py-4 shadow-md cursor-pointer">
           {/* Top row: team name + status dot */}
@@ -80,7 +82,7 @@ const dayTasks = selectedDay ? (MOCK_DAY_TASKS[selectedDay]??[]) : [];
           {/* Deadline */}
           <div className="flex items-center gap-1 text-xs text-gray-500">
             <span>📅</span>
-            <span>Due {new Date(task.deadline).toLocaleDateString("default", { month: "short", day: "numeric", year: "numeric" })}</span>
+            <span>Due {new Date(task.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
           </div>
         </div>
               </Link>

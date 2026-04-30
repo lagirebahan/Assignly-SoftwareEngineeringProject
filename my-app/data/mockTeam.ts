@@ -49,10 +49,10 @@ export const MOCK_TEAMS: Team[] = [
     leaderId: "m1",
     members: [
       { id: "m1", name: "Alexio Clive Vandana",        },
-      { id: "m2", name: "Bryant Evant Mulya",           tasks: [{ id: "t1", title: "Task 1", hasAttachment: true,  status: "verified",   deadline: "2025-05-25" }] },
-      { id: "m3", name: "Christian Jordan Dwisaputra",  tasks: [{ id: "t1", title: "Task 1", hasAttachment: true,  status: "verified",   deadline: "2025-05-25" }] },
-      { id: "m4", name: "Joselyn Patricia Prasetyo",    tasks: [{ id: "t1", title: "Task 1", hasAttachment: false, status: "pending",    deadline: "2025-05-25" }] },
-      { id: "m5", name: "Nathan",                       tasks: [{ id: "t1", title: "Task 1", hasAttachment: false, status: "verified",   deadline: "2025-05-25" }] },
+      { id: "m2", name: "Bryant Evant Mulya",           tasks: [{ id: "t1", title: "Make Figma", hasAttachment: true,  status: "verified",   deadline: "2025-05-25" }] },
+      { id: "m3", name: "Christian Jordan Dwisaputra",  tasks: [{ id: "t1", title: "Code Frontend", hasAttachment: true,  status: "verified",   deadline: "2025-05-25" },{ id: "t2", title: "Code Backend", hasAttachment: true,  status: "verified",   deadline: "2025-05-25" }] },
+      { id: "m4", name: "Joselyn Patricia Prasetyo",    tasks: [{ id: "t1", title: "Dokumentasi", hasAttachment: false, status: "pending",    deadline: "2025-05-25" }] },
+      { id: "m5", name: "Nathan",                       tasks: [{ id: "t1", title: "Make Questionnaire", hasAttachment: true, status: "verified",   deadline: "2025-05-25" }] },
     ],
   },
   {
