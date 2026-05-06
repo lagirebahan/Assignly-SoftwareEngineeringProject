@@ -9,10 +9,12 @@ export const MemberColumn = ({
   member,
   teamId,
   isLeader,
+  currentUserId,
 }: {
   member: TeamMember;
   teamId: string;
   isLeader: boolean;
+  currentUserId:string;
 }) => {
   const [tasks, setTasks] = useState<Task[]>(member.tasks ?? []);
   const [showForm, setShowForm] = useState(false);
@@ -20,18 +22,23 @@ export const MemberColumn = ({
   const [newDeadline, setNewDeadline] = useState("");
   const [error, setError] = useState("");
 
-  const handleAddTask = () => {
-    if (!newTitle.trim()) { setError("Title is required."); return; }
-    if (!newDeadline) { setError("Deadline is required."); return; }
+  const handleAddTask = async () => {
+  if (!newTitle.trim()) { setError("Title is required."); return; }
+  if (!newDeadline) { setError("Deadline is required."); return; }
 
-    const newTask: Task = {
-      id: `t${tasks.length + 1}-${Date.now()}`,
-      title: newTitle.trim(),
-      hasAttachment: false,
-      status: "pending",
-      deadline: newDeadline,
-    };
+  const res = await fetch(`/api/teams/${teamId}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: newTitle.trim(),
+        deadline: newDeadline,
+        teamMemberId: member.id,
+      }),
+    });
 
+    if (!res.ok) { setError("Failed to add task."); return; }
+
+    const newTask = await res.json();
     setTasks((prev) => [...prev, newTask]);
     setNewTitle("");
     setNewDeadline("");
@@ -50,7 +57,7 @@ export const MemberColumn = ({
       maxHeight: "calc(100vh - 220px)",
       overflow: "hidden",
     }}>
-      {/* Header */}
+      
       <div style={{
         fontWeight: 700, fontSize: 14, color: "#111827",
         marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid #f3f4f6",
@@ -58,13 +65,11 @@ export const MemberColumn = ({
         {member.name}
       </div>
 
-      {/* Scrollable task list */}
       <div
         style={{ overflowY: "auto", flex: 1 }}
         className="[&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300"
       >
         {tasks.length === 0 ? (
-          // ── Empty state ──
           <div style={{
             display: "flex", flexDirection: "column", alignItems: "center",
             justifyContent: "center", padding: "24px 8px", gap: 8, color: "#9ca3af",
@@ -86,13 +91,14 @@ export const MemberColumn = ({
               key={task.id}
               task={task}
               teamId={teamId}
-              memberId={member.id}
+              memberId={member.userId}
               isLeader={isLeader}
+              currentUserId={currentUserId}
             />
           ))
         )}
 
-        {/* Inline add task form — leader only */}
+        
         {isLeader && showForm && (
           <div style={{
             backgroundColor: "#f9fafb", borderRadius: 10,
@@ -146,7 +152,7 @@ export const MemberColumn = ({
         )}
       </div>
 
-      {/* Footer — + button for leader only */}
+      
       <div style={{
         borderTop: "1px solid #f3f4f6", paddingTop: 8, marginTop: 4,
         display: "flex", justifyContent: "center",
@@ -161,19 +167,16 @@ export const MemberColumn = ({
             }}
           >
             {showForm ? (
-              // X icon when form is open
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
             ) : (
-              // + icon when form is closed
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
             )}
           </button>
         ) : (
-          // Upload icon for members
           <button style={{
             background: "none", border: "none", cursor: "pointer",
             color: "#6b7280", display: "flex", alignItems: "center", gap: 4, fontSize: 12,

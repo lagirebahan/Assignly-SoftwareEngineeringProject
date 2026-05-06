@@ -1,9 +1,9 @@
-import AppNavbar from "@/components/layout/Navbar";
+import ClientOnlyNavbar from "@/components/layout/ClientOnlyNavbar";
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <AppNavbar />
+      <ClientOnlyNavbar />
       <main className="flex-1 min-h-0 overflow-hidden">
         {children}
       </main>

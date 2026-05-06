@@ -6,12 +6,9 @@ import { useSearchParams, useRouter } from "next/navigation";
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-
   const email = searchParams.get("email");
-
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -39,7 +36,7 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/reset-password", {
+      const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -55,7 +52,7 @@ export default function ResetPasswordPage() {
         return;
       }
 
-      // ✅ SUCCESS
+      // success
       setSuccess("Password reset successful! Redirecting to login...");
 
       setTimeout(() => {
@@ -76,11 +73,9 @@ export default function ResetPasswordPage() {
           Reset Password
         </h2>
 
-        {/* Alerts */}
         {error && <div className="text-red-500 mb-4">{error}</div>}
         {success && <div className="text-green-600 mb-4">{success}</div>}
 
-        {/* Form */}
         {!success && (
           <form onSubmit={handleReset} className="flex flex-col gap-4">
             <input
@@ -109,7 +104,6 @@ export default function ResetPasswordPage() {
           </form>
         )}
 
-        {/* Manual fallback button */}
         {success && (
           <button
             onClick={() => router.push("/login")}

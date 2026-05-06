@@ -20,7 +20,6 @@ export default function RegisterPage() {
     setError("");
     setSuccess("");
 
-    // Client-side checks before hitting the API
     if (!name || !email || !password || !confirm) {
       setError("Please fill in all fields.");
       return;
@@ -36,7 +35,7 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    const res = await fetch("/api/register", {
+    const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password }),
@@ -63,7 +62,6 @@ export default function RegisterPage() {
         className="w-full max-w-sm rounded-2xl p-10"
         style={{ background: "#f9f8f6", boxShadow: "0 30px 60px rgba(0,0,0,0.25)" }}
       >
-        {/* Logo + tab */}
         <div className="flex flex-col items-center gap-3 mb-8">
           <Image src="/icon.png" alt="Assignly Logo" width={54} height={54} priority />
           <span
@@ -74,7 +72,6 @@ export default function RegisterPage() {
           </span>
         </div>
 
-        {/* Alerts */}
         {error && (
           <div
             className="mb-4 px-4 py-3 rounded-lg text-sm"
@@ -92,7 +89,6 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleRegister} noValidate className="flex flex-col gap-3">
           <input
             type="text"

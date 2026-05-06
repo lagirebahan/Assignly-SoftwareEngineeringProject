@@ -1,7 +1,15 @@
 "use client";
 
 import { HeroUIProvider } from "@heroui/react";
+import { useRouter } from "next/navigation";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return <HeroUIProvider className="flex flex-col h-full">{children}</HeroUIProvider>;
+  const router = useRouter();
+
+  return (
+    <HeroUIProvider navigate={router.push} className="flex flex-col h-full">
+        {children}
+      
+    </HeroUIProvider>
+  );
 }

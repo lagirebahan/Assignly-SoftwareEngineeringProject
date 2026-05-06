@@ -6,9 +6,9 @@ export function EmptyState({ onClick }: { onClick: () => void }) {
         style={{
           width: "100%",
           maxWidth: 900,
-          padding: "80px 40px",
+          padding: "120px 40px",
           borderRadius: 32,
-          border: "2px solid rgba(0,0,0,0.25)",
+          border: "2px dotted rgba(0,0,0,0.25)",
           backgroundColor: "transparent",
           cursor: "pointer",
           display: "flex",
@@ -24,7 +24,7 @@ export function EmptyState({ onClick }: { onClick: () => void }) {
           (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
         }}
       >
-        {/* Plus icon in circle */}
+        {/* big plus icon pake svg */}
         <div
           style={{
             width: 100,

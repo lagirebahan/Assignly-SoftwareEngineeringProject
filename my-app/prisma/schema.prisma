@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model User {
+  id       String @id @default(uuid())
+  name     String
+  email    String @unique
+  password String
+
+  teams TeamMember[]
+  notifications Notification[]
+  emailNotifications Boolean @default(true)
+}
+
+model Team {
+  id       String @id @default(uuid())
+  name     String
+  joinCode String @unique
+  leaderId String
+
+  members TeamMember[]
+}
+
+model TeamMember {
+  id     String @id @default(uuid())
+  userId String
+  teamId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  tasks  Task[]
+
+  @@unique([userId, teamId])
+}
+
+model Task {
+  id            String     @id @default(uuid())
+  title         String
+  description   String?
+  hasAttachment Boolean    @default(false)
+  attachmentUrl String?
+  status        TaskStatus @default(pending)
+  deadline      DateTime?
+  teamMemberId  String
+  teamMember    TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+  comment       String?
+}
+
+enum TaskStatus {
+  pending
+  unverified
+  verified
+}
+
+model Notification{
+  id            String    @id @default(uuid())
+  userId        String
+  message       String
+  read          Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

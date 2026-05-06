@@ -7,7 +7,6 @@ export default function ForgotPage() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"email" | "verify">("email");
-
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,7 +23,7 @@ export default function ForgotPage() {
 
     setLoading(true);
 
-    const res = await fetch("/api/forgot-password", {
+    const res = await fetch("/api/auth/forgot-password", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -56,7 +55,7 @@ export default function ForgotPage() {
 
     setLoading(true);
 
-    const res = await fetch("/api/forgot-password", {
+    const res = await fetch("/api/auth/forgot-password", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -91,7 +90,6 @@ export default function ForgotPage() {
           boxShadow: "0 30px 60px rgba(0,0,0,0.25)",
         }}
       >
-        {/* Header */}
         <div className="flex flex-col items-center gap-3 mb-8">
           <Image src="/icon.png" alt="Logo" width={54} height={54} />
           <span className="text-sm font-medium px-6 py-2 rounded-full bg-black text-white">
@@ -99,7 +97,7 @@ export default function ForgotPage() {
           </span>
         </div>
 
-        {/* Alerts */}
+
         {error && (
           <div className="mb-4 text-red-500 text-sm">{error}</div>
         )}
@@ -107,7 +105,6 @@ export default function ForgotPage() {
           <div className="mb-4 text-green-600 text-sm">{success}</div>
         )}
 
-        {/* STEP 1: EMAIL */}
         {step === "email" && (
           <form onSubmit={sendCode} className="flex flex-col gap-4">
             <input
@@ -128,7 +125,6 @@ export default function ForgotPage() {
           </form>
         )}
 
-        {/* STEP 2: VERIFY */}
         {step === "verify" && (
           <form onSubmit={verifyCode} className="flex flex-col gap-4">
             <input

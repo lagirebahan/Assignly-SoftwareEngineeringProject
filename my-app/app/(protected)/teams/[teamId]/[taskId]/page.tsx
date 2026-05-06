@@ -1,134 +1,186 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { MOCK_SESSION } from "@/data/mockSession";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { LeaderPanel } from "@/components/tasks/LeaderPanel";
+import { DropZone } from "@/components/tasks/DropZone";
 
-type ViewMode = "leader" | "member";
-
-const LeaderPanel = ({
-  comment, setComment, onVerify, onReject, status,
-}: {
-  comment: string;
-  setComment: (v: string) => void;
-  onVerify: () => void;
-  onReject: () => void;
-  status: "idle" | "verified" | "rejected";
-}) => (
-  <div style={{ display: "flex", flexDirection: "column", gap: 12, width: 200, flexShrink: 0 }}>
-    <textarea
-      placeholder="Comment"
-      value={comment}
-      onChange={(e) => setComment(e.target.value)}
-      style={{
-        width: "100%", height: 120, borderRadius: 10, border: "1.5px solid #e5e7eb",
-        padding: "10px 12px", fontSize: 13, color: "#374151", resize: "none",
-        fontFamily: "inherit", outline: "none", backgroundColor: "white", boxSizing: "border-box",
-      }}
-    />
-    <button onClick={onVerify} style={{
-      padding: "10px 0", borderRadius: 10, border: "none",
-      backgroundColor: status === "verified" ? "#16a34a" : "rgba(255,255,255,0.85)",
-      color: status === "verified" ? "white" : "#111827",
-      fontWeight: 600, fontSize: 14, cursor: "pointer", transition: "all 0.2s",
-      boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
-    }}>
-      {status === "verified" ? "✓ Verified" : "Verify"}
-    </button>
-    <button onClick={onReject} style={{
-      padding: "10px 0", borderRadius: 10, border: "none",
-      backgroundColor: status === "rejected" ? "#dc2626" : "rgba(255,255,255,0.5)",
-      color: status === "rejected" ? "white" : "#6b7280",
-      fontWeight: 600, fontSize: 13, cursor: "pointer", transition: "all 0.2s",
-    }}>
-      {status === "rejected" ? "✗ Rejected" : "Reject"}
-    </button>
-  </div>
-);
-
-const DropZone = ({ file, onFile }: { file: File | null; onFile: (f: File) => void }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [dragging, setDragging] = useState(false);
-
-  return (
-    <div
-      onClick={() => inputRef.current?.click()}
-      onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-      onDragLeave={() => setDragging(false)}
-      onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) onFile(f); }}
-      style={{
-        width: "100%", height: 120, borderRadius: 12,
-        border: `2px dashed ${dragging ? "#6b7280" : "#d1d5db"}`,
-        backgroundColor: dragging ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.08)",
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-        gap: 8, cursor: "pointer", transition: "all 0.15s", color: "rgba(255,255,255,0.7)", fontSize: 13,
-      }}
-    >
-      <input ref={inputRef} type="file" style={{ display: "none" }} onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
-      {file ? (
-        <>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#4ade80" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <span style={{ color: "#4ade80", fontWeight: 600 }}>{file.name}</span>
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Click to replace</span>
-        </>
-      ) : (
-        <>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <span>Drop file or click to upload</span>
-        </>
-      )}
-    </div>
-  );
-};
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-export default function TaskDetailPage({
-  params,
-}: {
-  params: { teamId: string; taskId: string };
-}) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const teamId = params?.teamId ?? "team1";
-  const taskId = params?.taskId ?? "t1";
-  const memberId = searchParams.get("member") ?? "m1"; // whose task we're viewing
-
-  // ── Derive view mode from role + ownership ──────────────────────────────────
-  // Leader viewing someone else's task → leader view (can verify/edit)
-  // Leader viewing their own task      → member view (submit own work)
-  // Member viewing any task            → member view
-  const isLeader = MOCK_SESSION.role === "leader";
-  const isOwnTask = MOCK_SESSION.id === memberId;
-  const showLeaderView = isLeader && !isOwnTask; // ✅ key logic
-
-  // Shared state
-  const [title, setTitle] = useState("");
+export default function TaskDetailPage() {
+  const [currentUserId, setCurrentUserId] = useState("");
+  const [isLeader, setIsLeader] = useState(false);
+  const [task, setTask] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [description, setDescription] = useState("");
-  const [attachment, setAttachment] = useState<File | null>(null);
-  const existingAttachmentName = "Attachment.pdf";
-
-  // Leader state
-  const [comment, setComment] = useState("");
-  const [verifyStatus, setVerifyStatus] = useState<"idle" | "verified" | "rejected">("idle");
-
-  // Member state
   const [progressFile, setProgressFile] = useState<File | null>(null);
   const [uploadDone, setUploadDone] = useState(false);
+  const [comment, setComment] = useState("");
+  const [verifyStatus, setVerifyStatus] = useState<"idle" | "verified" | "pending">("idle");
+  const [showRejectConfirm, setShowRejectConfirm] = useState(false);
+  const [viewingAttachment, setViewingAttachment] = useState(false);
 
-  const handleVerify = () => setVerifyStatus("verified");
-  const handleReject = () => setVerifyStatus("rejected");
-  const handleMemberUpload = () => { if (progressFile) setUploadDone(true); };
-  const handleLeaderSave = () => router.back();
+  const router = useRouter();
+  const params = useParams();
+  const teamId = params?.teamId as string;
+  const taskId = params?.taskId as string;
 
-  // ── Label for header ────────────────────────────────────────────────────────
-  const pageTitle = isOwnTask
-    ? `My Task – ${taskId.replace("t", "Task ")}`
-    : `${memberId.replace("m", "Member ")} – ${taskId.replace("t", "Task ")}`;
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) { router.replace("/login"); return; }
+    const parsed = JSON.parse(storedUser);
+    setCurrentUserId(parsed.id);
+
+    const cacheKey = `task_${taskId}_team_${teamId}`;
+    const cached = sessionStorage.getItem(cacheKey);
+
+    if (cached) {
+      const { taskData, teamData } = JSON.parse(cached);
+      const leader = teamData.leaderId === parsed.id;
+      const ownTask = taskData.memberId === parsed.id;
+      const allowed = ownTask || (leader && taskData.status !== "verified");
+
+      if (!allowed) { setAccessDenied(true); setLoading(false); return; }
+
+      setTask(taskData);
+      setIsLeader(leader);
+      setDescription(taskData.description ?? "");
+      setComment(taskData.comment ?? "");
+      if (taskData.status === "verified") setVerifyStatus("verified");
+      if (taskData.status === "pending") setVerifyStatus("pending");
+      setLoading(false);
+      return;
+    }
+
+    Promise.all([
+      fetch(`/api/tasks/${taskId}`).then(r => r.json()),
+      fetch(`/api/teams/${teamId}`).then(r => r.json()),
+    ]).then(([taskData, teamData]) => {
+      const leader = teamData.leaderId === parsed.id;
+      const ownTask = taskData.memberId === parsed.id;
+      const allowed = ownTask || (leader && taskData.status !== "verified");
+
+      if (!allowed) { setAccessDenied(true); setLoading(false); return; }
+
+      sessionStorage.setItem(cacheKey, JSON.stringify({ taskData, teamData }));
+
+      setTask(taskData);
+      setIsLeader(leader);
+      setDescription(taskData.description ?? "");
+      setComment(taskData.comment ?? "");
+      if (taskData.status === "verified") setVerifyStatus("verified");
+      if (taskData.status === "pending") setVerifyStatus("pending");
+      setLoading(false);
+    });
+  }, [taskId, teamId, router]);
+
+  const isOwnTask = task?.memberId === currentUserId;
+  const showLeaderView = isLeader && !isOwnTask;
+  const isVerified = task?.status === "verified";
+
+  const handleSubmit = async () => {
+    if (!progressFile && !description) return;
+
+    let attachmentUrl = null;
+
+    if (progressFile) {
+      const ext = progressFile.name.split(".").pop()?.toLowerCase();
+      const path = `${taskId}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("attachments")
+        .upload(path, progressFile, { upsert: true });
+
+      if (error) { console.error(error); return; }
+
+      const { data } = supabase.storage.from("attachments").getPublicUrl(path);
+      attachmentUrl = data.publicUrl;
+    }
+
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "submit",
+        description,
+        attachmentUrl,
+      }),
+    });
+    
+    if (res.ok){
+      sessionStorage.removeItem(`task_${taskId}_team_${teamId}`);
+      setUploadDone(true);
+    } 
+  };
+
+  const handleVerify = async () => {
+    if (verifyStatus === "verified") return;
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "verify", comment }),
+    });
+    if (res.ok) {
+      sessionStorage.removeItem(`task_${taskId}_team_${teamId}`);
+      setVerifyStatus("verified");
+    }
+  };
+
+  const handleReject = async () => {
+    if (verifyStatus === "verified") {
+      setShowRejectConfirm(true);
+      return;
+    }
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "reject", comment }),
+    });
+    if (res.ok) {
+      sessionStorage.removeItem(`task_${taskId}_team_${teamId}`);
+      setVerifyStatus("pending");
+      setTask((prev: any) => ({ ...prev, status: "pending" }));
+    }
+  };
+
+  const handleConfirmReject = async () => {
+    setShowRejectConfirm(false);
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "reject", comment }),
+    });
+    if (res.ok) {
+      sessionStorage.removeItem(`task_${taskId}_team_${teamId}`);
+      setVerifyStatus("pending");
+      setTask((prev: any) => ({ ...prev, status: "pending" }));
+    }
+  };
+
+  if (loading) return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(to bottom, #2e2e2e, #b6a88b)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <span style={{ color: "white", fontSize: 16 }}>Loading...</span>
+    </div>
+  );
+
+  if (accessDenied) return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(to bottom, #2e2e2e, #b6a88b)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
+      <span style={{ fontSize: 40 }}>🚫</span>
+      <p style={{ color: "white", fontSize: 16, fontWeight: 600, margin: 0 }}>Access Denied</p>
+      <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, margin: 0 }}>
+        You don't have permission to view this task.
+      </p>
+      <button
+        onClick={() => router.back()}
+        style={{ marginTop: 8, padding: "10px 24px", borderRadius: 10, border: "none", backgroundColor: "rgba(255,255,255,0.2)", color: "white", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
+      >
+        Go Back
+      </button>
+    </div>
+  );
+
+  const pageTitle = showLeaderView
+    ? `${task.teamName} – ${task.memberName} – ${task.title}`
+    : `${task.teamName} – ${task.title}`;
 
   return (
     <div style={{
@@ -137,32 +189,20 @@ export default function TaskDetailPage({
       display: "flex", flexDirection: "column",
       padding: "36px 48px", boxSizing: "border-box",
     }}>
-      {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <button
-            onClick={() => router.back()}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "white", fontSize: 22, lineHeight: 1, padding: 0 }}
-          >
-            ←
-          </button>
-          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "white" }}>
-            {pageTitle}
-          </h1>
+          <button onClick={() => router.back()} style={{ background: "none", border: "none", cursor: "pointer", color: "white", fontSize: 22, lineHeight: 1, padding: 0 }}>←</button>
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "white" }}>{pageTitle}</h1>
         </div>
-
-        {/* Role badge — read-only indicator, no toggle */}
         <div style={{
           padding: "5px 14px", borderRadius: 999,
           backgroundColor: "rgba(0,0,0,0.25)",
           color: "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: 600,
-          textTransform: "capitalize",
         }}>
-          {isLeader && !isOwnTask ? "👑 Verifying as Leader" : "📝 Submitting as Member"}
+          {showLeaderView ? "👑 Verifying as Leader" : "📝 Submitting as Member"}
         </div>
       </div>
 
-      {/* ── LEADER VIEW (leader viewing someone else's task) ── */}
       {showLeaderView && (
         <div style={{
           display: "flex", gap: 20,
@@ -170,45 +210,56 @@ export default function TaskDetailPage({
           borderRadius: 16, padding: 24, boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
         }}>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
-            <input
-              type="text" placeholder="Title" value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              style={{
-                padding: "10px 14px", borderRadius: 10, border: "none",
-                backgroundColor: "rgba(255,255,255,0.85)",
-                fontSize: 15, fontWeight: 600, color: "#111827", outline: "none",
-              }}
-            />
-            <textarea
-              placeholder="Description" value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              style={{
-                flex: 1, minHeight: 120, padding: "10px 14px", borderRadius: 10, border: "none",
-                backgroundColor: "rgba(255,255,255,0.85)", fontSize: 13,
-                color: "#374151", resize: "none", fontFamily: "inherit", outline: "none",
-              }}
-            />
-            <div style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              backgroundColor: "rgba(255,255,255,0.85)", borderRadius: 10, padding: "10px 14px",
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#374151", fontSize: 13 }}>
-                📎 {attachment ? attachment.name : existingAttachmentName}
-              </div>
-              <button onClick={() => document.getElementById("leader-file-input")?.click()}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280" }}>
-                ↑
-              </button>
-              <input id="leader-file-input" type="file" style={{ display: "none" }}
-                onChange={(e) => e.target.files?.[0] && setAttachment(e.target.files[0])} />
+            <div style={{ padding: "10px 14px", borderRadius: 10, backgroundColor: "rgba(255,255,255,0.85)", fontSize: 15, fontWeight: 600, color: "#111827" }}>
+              {task.title}
             </div>
-            <button onClick={handleLeaderSave} style={{
-              padding: "10px 0", borderRadius: 10, border: "none",
-              backgroundColor: "rgba(255,255,255,0.9)",
-              fontWeight: 700, fontSize: 14, cursor: "pointer", color: "#111827",
+            <div style={{
+              flex: 1, minHeight: 120, padding: "10px 14px", borderRadius: 10,
+              backgroundColor: "rgba(255,255,255,0.85)", fontSize: 13,
+              color: "#374151", fontFamily: "inherit", overflowY: "auto",
             }}>
-              Save Task
-            </button>
+              {task.description || <span style={{ color: "#9ca3af" }}>No description submitted yet.</span>}
+            </div>
+            {task.attachmentUrl && (() => {
+              const ext = task.attachmentUrl.split(".").pop()?.toLowerCase();
+              const viewable = ["jpg","jpeg","png","gif","webp","pdf","doc","docx","ppt","pptx","xls","xlsx"];
+              const isViewable = viewable.includes(ext);
+              return (
+                <div style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  backgroundColor: "rgba(255,255,255,0.85)", borderRadius: 10, padding: "10px 14px",
+                }}>
+                  <span style={{ fontSize: 13, color: "#374151" }}>
+                    📎 {task.attachmentUrl.split("/").pop()}
+                  </span>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {isViewable && (
+                      <button
+                        onClick={() => setViewingAttachment(true)}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "#3b82f6", fontSize: 13 }}
+                      >
+                        👁 View
+                      </button>
+                    )}
+                    <button
+                      onClick={async () => {
+                        const res = await fetch(task.attachmentUrl);
+                        const blob = await res.blob();
+                        const blobUrl = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = blobUrl;
+                        a.download = task.attachmentUrl.split("/").pop() || "attachment";
+                        a.click();
+                        URL.revokeObjectURL(blobUrl);
+                      }}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280", fontSize: 13 }}
+                    >
+                      ↓ Download
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           <LeaderPanel
@@ -219,63 +270,159 @@ export default function TaskDetailPage({
         </div>
       )}
 
-      {/* ── MEMBER VIEW (everyone else, including leader viewing own task) ── */}
       {!showLeaderView && (
-        <div style={{
+        <div className="[&::-webkit-scrollbar]:w-1.5
+            [&::-webkit-scrollbar-track]:bg-transparent
+            [&::-webkit-scrollbar-track]:rounded-full
+            [&::-webkit-scrollbar-thumb]:rounded-full
+            [&::-webkit-scrollbar-thumb]:bg-transparent"
+          style={{
           backgroundColor: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)",
           borderRadius: 16, padding: 24, boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
           display: "flex", flexDirection: "column", gap: 16,
+          overflowY: "auto",
+          maxHeight: "70vh",
         }}>
           <div style={{ backgroundColor: "rgba(255,255,255,0.85)", borderRadius: 12, padding: "14px 16px" }}>
             <div style={{ fontWeight: 700, fontSize: 15, color: "#111827", marginBottom: 6 }}>
-              {taskId.replace("t", "Task ")}
+              {task.title}
               {isOwnTask && isLeader && (
                 <span style={{ marginLeft: 8, fontSize: 11, color: "#6b7280", fontWeight: 400 }}>
                   (you are the leader — submit your own work here)
                 </span>
               )}
             </div>
-            <div style={{ fontSize: 13, color: "#6b7280" }}>
-              Complete and upload your progress below. The leader will review your submission.
-            </div>
+            {task.deadline && (
+              <div style={{ fontSize: 12, color: "#6b7280" }}>
+                📅 Due {new Date(task.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              </div>
+            )}
           </div>
 
-          {/* Download task file */}
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            backgroundColor: "rgba(255,255,255,0.85)", borderRadius: 10, padding: "10px 14px",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#374151", fontSize: 13 }}>
-              📎 {existingAttachmentName}
+          {task.comment && task.status === "pending" && (
+            <div style={{ backgroundColor: "rgba(239,68,68,0.15)", borderRadius: 10, padding: "10px 14px", border: "1px solid rgba(239,68,68,0.3)" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#fca5a5", marginBottom: 4 }}>Leader's feedback:</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>{task.comment}</div>
             </div>
-            <button style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280", fontSize: 13 }}>
-              ↓ Download
-            </button>
-          </div>
+          )}
 
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginBottom: 8 }}>
-              Upload your progress
+          {isVerified ? (
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: "20px", borderRadius: 12, backgroundColor: "rgba(22,163,74,0.2)",
+              border: "1px solid rgba(22,163,74,0.4)",
+            }}>
+              <span style={{ color: "#4ade80", fontWeight: 700, fontSize: 15 }}>✓ This task has been verified!</span>
             </div>
-            <DropZone file={progressFile} onFile={setProgressFile} />
-          </div>
+          ) : (
+            <>
+              <textarea
+                placeholder="Describe your work..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                style={{
+                  padding: "10px 14px", borderRadius: 10, border: "none",
+                  backgroundColor: "rgba(255,255,255,0.85)", fontSize: 13,
+                  color: "#374151", resize: "none", fontFamily: "inherit",
+                  outline: "none", minHeight: 100,
+                }}
+              />
 
-          <button
-            onClick={handleMemberUpload}
-            disabled={!progressFile || uploadDone}
-            style={{
-              padding: "12px 0", borderRadius: 10, border: "none",
-              backgroundColor: uploadDone ? "#16a34a" : progressFile ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.3)",
-              color: uploadDone ? "white" : progressFile ? "#111827" : "rgba(255,255,255,0.4)",
-              fontWeight: 700, fontSize: 14,
-              cursor: progressFile && !uploadDone ? "pointer" : "not-allowed",
-              transition: "all 0.2s",
-            }}
-          >
-            {uploadDone ? "✓ Submitted!" : "Submit Progress"}
-          </button>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginBottom: 8 }}>
+                  Upload your progress
+                </div>
+                <DropZone file={progressFile} onFile={setProgressFile} />
+              </div>
+
+              <button
+                onClick={handleSubmit}
+                disabled={(!progressFile && !description) || uploadDone}
+                style={{
+                  padding: "12px 0", borderRadius: 10, border: "none",
+                  backgroundColor: uploadDone ? "#16a34a" : (progressFile || description) ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.3)",
+                  color: uploadDone ? "white" : (progressFile || description) ? "#111827" : "rgba(255,255,255,0.4)",
+                  fontWeight: 700, fontSize: 14,
+                  cursor: (!progressFile && !description) || uploadDone ? "not-allowed" : "pointer",
+                  transition: "all 0.2s",
+                }}
+              >
+                {uploadDone ? "✓ Submitted!" : "Submit Progress"}
+              </button>
+            </>
+          )}
         </div>
       )}
+
+      {showRejectConfirm && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.4)" }}
+          onClick={() => setShowRejectConfirm(false)}>
+          <div style={{ backgroundColor: "white", borderRadius: 16, padding: "28px 28px 24px", width: 360, boxShadow: "0 24px 60px rgba(0,0,0,0.25)", border: "1.5px solid #fecaca" }}
+            onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              <span style={{ fontSize: 18 }}>⚠️</span>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#111827" }}>Change verification?</h3>
+            </div>
+            <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 20 }}>
+              This task is already verified. Are you sure you want to reject it?
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setShowRejectConfirm(false)} style={{ flex: 1, padding: "10px 0", borderRadius: 10, border: "1.5px solid #e5e7eb", backgroundColor: "white", fontSize: 13, fontWeight: 600, color: "#374151", cursor: "pointer" }}>
+                Cancel
+              </button>
+              <button onClick={handleConfirmReject} style={{ flex: 1, padding: "10px 0", borderRadius: 10, border: "none", backgroundColor: "#ef4444", fontSize: 13, fontWeight: 600, color: "white", cursor: "pointer" }}>
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {viewingAttachment && task.attachmentUrl && (() => {
+        const url = task.attachmentUrl;
+        const ext = url.split(".").pop()?.toLowerCase();
+        const isImage = ["jpg","jpeg","png","gif","webp"].includes(ext);
+        const isPdf = ext === "pdf";
+        const isOffice = ["doc","docx","ppt","pptx","xls","xlsx"].includes(ext);
+        const viewerUrl = isOffice ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true` : url;
+
+        return (
+          <div
+            style={{ position: "fixed", inset: 0, zIndex: 300, backgroundColor: "rgba(0,0,0,0.8)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}
+            onClick={() => setViewingAttachment(false)}
+          >
+            <div
+              style={{ backgroundColor: "white", borderRadius: 16, overflow: "hidden", width: "90vw", maxWidth: 900, maxHeight: "85vh", display: "flex", flexDirection: "column" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ padding: "12px 16px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{url.split("/").pop()}</span>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button
+                    onClick={async () => {
+                      const res = await fetch(task.attachmentUrl);
+                      const blob = await res.blob();
+                      const blobUrl = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = blobUrl;
+                      a.download = task.attachmentUrl.split("/").pop() || "attachment";
+                      a.click();
+                      URL.revokeObjectURL(blobUrl);
+                    }}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280", fontSize: 13 }}
+                  >
+                    ↓ Download
+                  </button>
+                  <button onClick={() => setViewingAttachment(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "#6b7280" }}>×</button>
+                </div>
+              </div>
+              <div style={{ flex: 1, overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+                {isImage && <img src={url} style={{ maxWidth: "100%", maxHeight: "70vh", objectFit: "contain" }} />}
+                {(isPdf || isOffice) && <iframe src={viewerUrl} style={{ width: "100%", height: "70vh", border: "none" }} />}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

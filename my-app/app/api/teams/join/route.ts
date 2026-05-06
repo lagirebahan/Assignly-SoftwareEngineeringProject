@@ -1,19 +1,26 @@
-import { MOCK_TEAMS } from "@/data/mockTeam";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
-  const { code } = await req.json();
-  
+  const { code, userId } = await req.json();
 
-  // const team = await getTeamByJoinCode(joinCode);
-  const team = MOCK_TEAMS.find((t) => t.joinCode === code);
+  if (!code || !userId)
+    return Response.json({ message: "Code and user ID are required." }, { status: 400 });
 
-  if (!team) {
-    return new Response("Invalid code", { status: 400 });
-  }
+  const team = await prisma.team.findUnique({
+    where: { joinCode: code },
+    include: { members: true },
+  });
 
-  return Response.json(team);
+  if (!team)
+    return Response.json({ message: "Invalid code." }, { status: 404 });
+
+  const alreadyMember = team.members.some((m) => m.userId === userId);
+  if (alreadyMember)
+    return Response.json({ message: "Already a member of this team." }, { status: 409 });
+
+  await prisma.teamMember.create({
+    data: { userId, teamId: team.id },
+  });
+
+  return Response.json(team, { status: 200 });
 }
-
-// function getTeamByJoinCode(joinCode: string) : team {
-
-// }

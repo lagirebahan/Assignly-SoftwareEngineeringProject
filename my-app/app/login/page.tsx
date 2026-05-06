@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState} from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +24,7 @@ export default function LoginPage() {
 
     setLoading(true);
 
-    const res = await fetch("/api/login", {
+    const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -40,20 +38,17 @@ export default function LoginPage() {
       return;
     }
 
-    if (!res.ok) {
-  setError(data.message || "Login failed.");
-  return;
-}
+    
 
-// ✅ SAVE USER HERE
-localStorage.setItem("user", JSON.stringify(data.user));
+  localStorage.setItem("token", data.token);
+  localStorage.setItem("user", JSON.stringify(data.user));
 
-setSuccess(`Welcome back, ${data.user.name}! Redirecting...`);
+  setSuccess(`Welcome back, ${data.user.name}! Redirecting...`);
 
-setTimeout(() => {
-  window.location.href = "/";
-}, 1000);
-  };
+  setTimeout(() => {
+    window.location.href = "/";
+  }, 1000);
+    };
 
   return (
     <div
@@ -64,7 +59,6 @@ setTimeout(() => {
         className="w-full max-w-sm rounded-2xl p-10"
         style={{ background: "#f9f8f6", boxShadow: "0 30px 60px rgba(0,0,0,0.25)" }}
       >
-        {/* Logo + tab */}
         <div className="flex flex-col items-center gap-3 mb-8">
           <Image src="/icon.png" alt="Assignly Logo" width={54} height={54} priority />
           <span
@@ -75,7 +69,6 @@ setTimeout(() => {
           </span>
         </div>
 
-        {/* Alerts */}
         {error && (
           <div
             className="mb-4 px-4 py-3 rounded-lg text-sm"
@@ -93,7 +86,6 @@ setTimeout(() => {
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleLogin} noValidate className="flex flex-col gap-3">
           <input
             type="email"

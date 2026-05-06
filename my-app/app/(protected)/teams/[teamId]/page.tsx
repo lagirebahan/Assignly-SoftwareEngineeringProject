@@ -1,21 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Legend } from "@/components/tasks/Legend";
-import { MOCK_TEAMS } from "@/data/mockTeam";
 import { MemberColumn } from "@/components/tasks/MemberColumn";
+import { Team } from "@/types/team";
 
-export default function GroupPage() { // 👈 remove params prop entirely
+export default function GroupPage() {
+  const [currentUserId, setCurrentUserId] = useState("");
+  const [teamData, setTeamData] = useState<Team | null>(null);
+  const [isLeader, setIsLeader] = useState(false);
   const router = useRouter();
   const params = useParams();
   const teamId = (params?.teamId as string) ?? "group1";
 
-  const teamData = MOCK_TEAMS.find(t => t.id === teamId);
-  const members = teamData?.members ?? [];
 
-  // In real app: derive from session/role
-  const [isLeader] = useState(true);
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) return;
+    const parsed = JSON.parse(storedUser);
+    setCurrentUserId(parsed.id);
+
+    const cacheKey = `group_${teamId}`;
+    const cached = sessionStorage.getItem(cacheKey);
+
+    if (cached) {
+      const data = JSON.parse(cached);
+      setTeamData(data);
+      setIsLeader(data.leaderId === parsed.id);
+      setGroupName(data.name);
+      return;
+    }
+
+    fetch(`/api/teams/${teamId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setTeamData(data);
+        setIsLeader(data.leaderId === parsed.id);
+        setGroupName(data.name);
+        sessionStorage.setItem(cacheKey, JSON.stringify(data));
+      });
+  }, [teamId]);
+
+  const handleSaveName = async () => {
+    setEditingName(false);
+    if (groupName === teamData?.name) return;
+    await fetch(`/api/teams/${teamId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: groupName }),
+    });
+    sessionStorage.removeItem(`group_${teamId}`); 
+  };
+
+  const members = teamData?.members ?? [];
   const [groupName, setGroupName] = useState(teamData?.name ?? "Unknown Group");
   const [editingName, setEditingName] = useState(false);
 
@@ -30,7 +68,6 @@ export default function GroupPage() { // 👈 remove params prop entirely
         boxSizing: "border-box",
       }}
     >
-      {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
         <button
           onClick={() => router.back()}
@@ -52,8 +89,8 @@ export default function GroupPage() { // 👈 remove params prop entirely
             autoFocus
             value={groupName}
             onChange={(e) => setGroupName(e.target.value)}
-            onBlur={() => setEditingName(false)}
-            onKeyDown={(e) => e.key === "Enter" && setEditingName(false)}
+            onBlur={ handleSaveName}
+            onKeyDown={(e) => e.key === "Enter" && { handleSaveName}}
             style={{
               fontSize: 22,
               fontWeight: 700,
@@ -107,6 +144,7 @@ export default function GroupPage() { // 👈 remove params prop entirely
             member={member}
             teamId={teamId}
             isLeader={isLeader}
+            currentUserId={currentUserId}
           />
         ))}
       </div>

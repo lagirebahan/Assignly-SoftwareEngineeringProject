@@ -1,19 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { EmptyState } from "@/components/teams/EmptyState";
 import { Legend } from "@/components/teams/Legend";
 import { TeamCard } from "@/components/teams/TeamCard";
 import { Modal } from "@/components/teams/Modal";
 import { Team } from "@/types/team";
-
-import { MOCK_TEAMS } from "@/data/mockTeam";
 import { AddTeamCard } from "@/components/teams/AddTeamCard";
 import { getMemberStatus } from "@/utils/GetMemberStatus";
-import { MOCK_SESSION } from "@/data/mockSession";
+import Image from "next/image";
 
 export default function TeamPage() {
-  const [teams, setTeams] = useState<Team[]>(MOCK_TEAMS);
+  const [loading, setLoading] = useState(true);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [userId, setUserId] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
   const [showFilter, setShowFilter] = useState(false);
@@ -24,6 +24,32 @@ export default function TeamPage() {
     completed: false,
   });
 
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setShowFilter(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) return;
+    const parsed = JSON.parse(storedUser);
+    setUserId(parsed.id);
+
+    fetch(`/api/teams?userId=${parsed.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setTeams(data)
+        setLoading(false);
+      });
+  }, []);
+  
   const toggleFilter = (key: keyof typeof filters) => {
     setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
   };
@@ -36,7 +62,7 @@ export default function TeamPage() {
     const anyActive = Object.values(filters).some(Boolean);
     if (!anyActive) return true; // no filter = show all
 
-    if (filters.leading && t.leaderId === MOCK_SESSION.id) return true;
+    if (filters.leading && t.leaderId === userId) return true;
     if (filters.waitingCompletion && t.members.some((m) => getMemberStatus(m) === "pending")) return true;
     if (filters.waitingVerification && t.members.some((m) => getMemberStatus(m) === "unverified")) return true;
     if (filters.completed && t.members.every((m) => getMemberStatus(m) === "verified")) return true;
@@ -44,54 +70,45 @@ export default function TeamPage() {
     return false;
   });
 
-  const handleCreateTeam = async (name:string) => {
-    try {
-    const res = await fetch("/api/teams/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name }),
-    });
-
-    if (!res.ok) {
-      throw new Error("Failed to create team");
+  const handleDeleteTeam = async (teamId: string) => {
+    const res = await fetch(`/api/teams/${teamId}`, { method: "DELETE" });
+    if (res.ok) {
+      setTeams((prev) => prev.filter((t) => t.id !== teamId));
     }
-
-    const newTeam = await res.json();
-
-    setTeams((prev) => [...prev, newTeam]);
-    setShowModal(false)
-
-  } catch (err) {
-    console.error(err);
-    alert("Failed to create team");
-  }
   };
 
-  const handleJoinTeam = async (joinCode:string) => {
+  const handleCreateTeam = async (name: string): Promise<boolean> => {
     try {
-    const res = await fetch("/api/teams/join", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ joinCode }),
-    });
-
-    if (!res.ok) {
-      throw new Error("Invalid invite code");
+      const res = await fetch("/api/teams/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, userId }),
+      });
+      if (!res.ok) return false;
+      const teamsRes = await fetch(`/api/teams?userId=${userId}`);
+      const updatedTeams = await teamsRes.json();
+      setTeams(updatedTeams);
+      return true;
+    } catch {
+      return false;
     }
+  };
 
-    const team:Team = await res.json();
-
-    setTeams((prev) => [...prev, team]);
-    setShowModal(false)
-
-  } catch (err) {
-    console.error(err);
-    alert("Failed to join team");
-  }
+  const handleJoinTeam = async (code: string): Promise<boolean> => {
+    try {
+      const res = await fetch("/api/teams/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, userId }),
+      });
+      if (!res.ok) return false;
+      const teamsRes = await fetch(`/api/teams?userId=${userId}`);
+      const updatedTeams = await teamsRes.json();
+      setTeams(updatedTeams);
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   return (
@@ -105,7 +122,6 @@ export default function TeamPage() {
         boxSizing: "border-box",
       }}
     >
-      {/* Search bar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 36 }}>
         <div style={{ position: "relative" }}>
           <input
@@ -124,21 +140,22 @@ export default function TeamPage() {
               outline: "none",
             }}
           />
-          <span 
+          <Image 
+            src="/icons/search_icon.png" 
+            alt="Search" 
+            width={16} 
+            height={16} 
             style={{ 
               position: "absolute", 
               left: 14, 
               top: "50%", 
               transform: "translateY(-50%)", 
-              color: "#9ca3af", 
-              fontSize: 16 
-            }}
-          >
-            🔎
-          </span>
+            }} 
+          />
+          
         </div>
         
-        <div style={{ position: "relative" }}>
+        <div style={{ position: "relative" }} ref={filterRef}>
           <button
             onClick={() => setShowFilter((v) => !v)}
             style={{
@@ -146,7 +163,7 @@ export default function TeamPage() {
               borderRadius: 10,
               border: "1px solid rgba(255,255,255,0.25)",
               backgroundColor: Object.values(filters).some(Boolean)
-                ? "rgba(255,255,255,0.3)"  // lit up when active
+                ? "rgba(255,255,255,0.3)"  // lit up kl active
                 : "rgba(255,255,255,0.1)",
               cursor: "pointer",
               color: "white",
@@ -188,7 +205,6 @@ export default function TeamPage() {
                       : "transparent",
                   }}
                 >
-                  {/* Checkbox */}
                   <div style={{
                     width: 16, height: 16, borderRadius: 4,
                     border: "1.5px solid #d1d5db",
@@ -203,7 +219,6 @@ export default function TeamPage() {
                     )}
                   </div>
 
-                  {/* Color dot */}
                   {dot && (
                     <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: dot, display: "inline-block", flexShrink: 0 }} />
                   )}
@@ -212,7 +227,6 @@ export default function TeamPage() {
                 </div>
               ))}
 
-              {/* Clear all */}
               {Object.values(filters).some(Boolean) && (
                 <>
                   <div style={{ borderTop: "1px solid #f3f4f6", margin: "6px 0" }} />
@@ -229,7 +243,6 @@ export default function TeamPage() {
         </div>
       </div>
 
-      {/* Body */}
       <div className= "flex flex-col min-h-0">
         {!hasTeams ? (
           <EmptyState onClick={() => setShowModal(true)} />
@@ -255,12 +268,10 @@ export default function TeamPage() {
                   alignItems: "start",
                 }}
               >
-                {/* Add Team card */}
                 <AddTeamCard onClick={() => setShowModal(true)} />
 
-                {/* Team cards */}
-                {filteredTeams.map((team) => (
-                  <TeamCard key={team.id} team={team} />
+                {!loading && filteredTeams.map((team) => (
+                  <TeamCard key={team.id} team={team} userId={userId} onDelete={handleDeleteTeam}/>
                 ))}
               </div>
             </div>
@@ -269,9 +280,6 @@ export default function TeamPage() {
         )}
       </div>
       
-      
-
-      {/* Modal */}
       {showModal && (
         <Modal onClose={() => setShowModal(false)} onCreateTeam={handleCreateTeam} onJoinTeam={handleJoinTeam}/>
       )}

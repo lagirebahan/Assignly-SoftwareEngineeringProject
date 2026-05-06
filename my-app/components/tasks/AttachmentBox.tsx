@@ -19,7 +19,6 @@ export const AttachmentBox = ({ hasAttachment }: { hasAttachment: boolean }) => 
   >
     {hasAttachment ? (
       <>
-        {/* Image placeholder */}
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <rect x="3" y="3" width="18" height="18" rx="2" stroke="#9ca3af" strokeWidth="1.5"/>
           <path d="M3 16l5-5 4 4 3-3 6 6" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
