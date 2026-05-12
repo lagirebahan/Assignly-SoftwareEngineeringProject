@@ -1,13 +1,13 @@
 export function Legend() {
   return (
-    <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 16, justifyContent: "flex-end" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-        <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#ef4444", display: "inline-block", boxShadow: "0 0 4px #ef4444aa" }} />
-        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>Unfinished task</span>
+    <div className="flex gap-4 items-center mb-4 justify-end">
+      <div className="flex items-center gap-1.5">
+        <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block shadow-[0_0_4px_#ef4444aa]" />
+        <span className="text-xs text-white/70">Unfinished task</span>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-        <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#f97316", display: "inline-block", boxShadow: "0 0 4px #f97316aa" }} />
-        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>Awaiting verification</span>
+      <div className="flex items-center gap-1.5">
+        <span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block shadow-[0_0_4px_#f97316aa]" />
+        <span className="text-xs text-white/70">Awaiting verification</span>
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ export const MemberColumn = ({
   member: TeamMember;
   teamId: string;
   isLeader: boolean;
-  currentUserId:string;
+  currentUserId: string;
 }) => {
   const [tasks, setTasks] = useState<Task[]>(member.tasks ?? []);
   const [showForm, setShowForm] = useState(false);
@@ -23,10 +23,10 @@ export const MemberColumn = ({
   const [error, setError] = useState("");
 
   const handleAddTask = async () => {
-  if (!newTitle.trim()) { setError("Title is required."); return; }
-  if (!newDeadline) { setError("Deadline is required."); return; }
+    if (!newTitle.trim()) { setError("Title is required."); return; }
+    if (!newDeadline) { setError("Deadline is required."); return; }
 
-  const res = await fetch(`/api/teams/${teamId}/tasks`, {
+    const res = await fetch(`/api/teams/${teamId}/tasks`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -47,40 +47,24 @@ export const MemberColumn = ({
   };
 
   return (
-    <div style={{
-      backgroundColor: "white",
-      borderRadius: 14,
-      padding: "14px 14px 8px",
-      boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
-      display: "flex",
-      flexDirection: "column",
-      maxHeight: "calc(100vh - 220px)",
-      overflow: "hidden",
-    }}>
-      
-      <div style={{
-        fontWeight: 700, fontSize: 14, color: "#111827",
-        marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid #f3f4f6",
-      }}>
+    <div className="bg-white rounded-[14px] pt-3.5 px-3.5 pb-2 shadow-[0_2px_12px_rgba(0,0,0,0.08)] flex flex-col max-h-[calc(100vh-220px)] overflow-hidden">
+
+      <div className="font-bold text-sm text-gray-900 mb-3 pb-2 border-b border-gray-100">
         {member.name}
       </div>
 
       <div
-        style={{ overflowY: "auto", flex: 1 }}
-        className="[&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300"
+        className="overflow-y-auto flex-1 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300"
       >
         {tasks.length === 0 ? (
-          <div style={{
-            display: "flex", flexDirection: "column", alignItems: "center",
-            justifyContent: "center", padding: "24px 8px", gap: 8, color: "#9ca3af",
-          }}>
+          <div className="flex flex-col items-center justify-center py-6 px-2 gap-2 text-gray-400">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
               <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                 stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
-            <span style={{ fontSize: 12, textAlign: "center" }}>No tasks yet</span>
+            <span className="text-xs text-center">No tasks yet</span>
             {isLeader && (
-              <span style={{ fontSize: 11, color: "#d1d5db", textAlign: "center" }}>
+              <span className="text-[11px] text-gray-300 text-center">
                 Use the + below to add one
               </span>
             )}
@@ -98,52 +82,33 @@ export const MemberColumn = ({
           ))
         )}
 
-        
         {isLeader && showForm && (
-          <div style={{
-            backgroundColor: "#f9fafb", borderRadius: 10,
-            padding: "10px 10px", marginTop: 8,
-            display: "flex", flexDirection: "column", gap: 6,
-          }}>
+          <div className="bg-gray-50 rounded-[10px] p-2.5 mt-2 flex flex-col gap-1.5">
             <input
               placeholder="Task title"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
-              style={{
-                padding: "6px 10px", borderRadius: 6, fontSize: 12,
-                border: "1px solid #e5e7eb", outline: "none", color: "#111827",
-              }}
+              className="px-2.5 py-1.5 rounded-md text-xs border border-gray-200 outline-none text-gray-900"
             />
             <input
               type="date"
               value={newDeadline}
               onChange={(e) => setNewDeadline(e.target.value)}
-              style={{
-                padding: "6px 10px", borderRadius: 6, fontSize: 12,
-                border: "1px solid #e5e7eb", outline: "none", color: "#374151",
-              }}
+              className="px-2.5 py-1.5 rounded-md text-xs border border-gray-200 outline-none text-gray-700"
             />
             {error && (
-              <span style={{ fontSize: 11, color: "#ef4444" }}>{error}</span>
+              <span className="text-[11px] text-red-500">{error}</span>
             )}
-            <div style={{ display: "flex", gap: 6 }}>
+            <div className="flex gap-1.5">
               <button
                 onClick={handleAddTask}
-                style={{
-                  flex: 1, padding: "5px 0", borderRadius: 6, border: "none",
-                  backgroundColor: "#111827", color: "white",
-                  fontSize: 12, fontWeight: 600, cursor: "pointer",
-                }}
+                className="flex-1 py-1 rounded-md border-none bg-gray-900 text-white text-xs font-semibold cursor-pointer"
               >
                 Add
               </button>
               <button
                 onClick={() => { setShowForm(false); setError(""); setNewTitle(""); setNewDeadline(""); }}
-                style={{
-                  flex: 1, padding: "5px 0", borderRadius: 6,
-                  border: "1px solid #e5e7eb", backgroundColor: "white",
-                  fontSize: 12, color: "#6b7280", cursor: "pointer",
-                }}
+                className="flex-1 py-1 rounded-md border border-gray-200 bg-white text-xs text-gray-500 cursor-pointer"
               >
                 Cancel
               </button>
@@ -152,19 +117,11 @@ export const MemberColumn = ({
         )}
       </div>
 
-      
-      <div style={{
-        borderTop: "1px solid #f3f4f6", paddingTop: 8, marginTop: 4,
-        display: "flex", justifyContent: "center",
-      }}>
+      <div className="border-t border-gray-100 pt-2 mt-1 flex justify-center">
         {isLeader ? (
           <button
             onClick={() => setShowForm((v) => !v)}
-            style={{
-              background: "none", border: "none", cursor: "pointer",
-              color: showForm ? "#ef4444" : "#6b7280",
-              display: "flex", alignItems: "center", gap: 4, fontSize: 12,
-            }}
+            className={`bg-none border-none cursor-pointer flex items-center gap-1 text-xs ${showForm ? "text-red-500" : "text-gray-500"}`}
           >
             {showForm ? (
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -177,10 +134,7 @@ export const MemberColumn = ({
             )}
           </button>
         ) : (
-          <button style={{
-            background: "none", border: "none", cursor: "pointer",
-            color: "#6b7280", display: "flex", alignItems: "center", gap: 4, fontSize: 12,
-          }}>
+          <button className="bg-none border-none cursor-pointer text-gray-500 flex items-center gap-1 text-xs">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"
                 stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

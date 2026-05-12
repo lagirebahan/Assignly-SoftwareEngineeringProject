@@ -9,8 +9,8 @@ const STATUS_CONFIG: Record<TaskStatus, { color: string; label: string }> = {
 export const StatusBadge = ({ status }: { status: TaskStatus }) => {
   const { color, label } = STATUS_CONFIG[status];
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 600, color, marginTop: 4 }}>
-      <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: color, flexShrink: 0 }} />
+    <div className="flex items-center gap-1.5 text-[11px] font-semibold mt-1" style={{ color }}>
+      <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: color }} />
       {label}
     </div>
   );

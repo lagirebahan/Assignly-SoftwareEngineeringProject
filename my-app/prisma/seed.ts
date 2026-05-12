@@ -143,7 +143,7 @@ async function main() {
     }
   }
 
-  console.log("✅ Seed complete!");
+  console.log("Seed complete!");
 }
 
 main()

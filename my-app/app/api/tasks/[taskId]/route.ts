@@ -1,11 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import { transporter } from "@/lib/mailer";
+import { getAuthUser } from "@/lib/auth";
 
 export async function GET(
   req: Request,
   { params }: { params: any }
 ) {
   const { taskId } = await params;
+  const user = await getAuthUser();
+  if (!user) return Response.json({ message: "Unauthorized." }, { status: 401 });
+
 
   const task = await prisma.task.findUnique({
     where: { id: taskId },

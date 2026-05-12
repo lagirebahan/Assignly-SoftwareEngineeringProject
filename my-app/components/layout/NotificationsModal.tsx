@@ -54,187 +54,69 @@ export default function NotificationsModal({
   if (!isOpen) return null;
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(0,0,0,0.6)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 200000,
-      }}
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200000]" onClick={onClose}>
       <div
-        style={{
-          backgroundColor: "#111118",
-          border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: 16,
-          width: 400,
-          maxWidth: "90vw",
-          overflow: "hidden",
-          boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
-          display: "flex",
-          flexDirection: "column",
-        }}
+        className="bg-[#111118] border border-white/10 rounded-2xl w-[400px] max-w-[90vw] overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.5)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-
-        <div
-          style={{
-            padding: "20px 24px",
-            borderBottom: "1px solid rgba(255,255,255,0.1)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <p style={{ color: "white", fontWeight: 600, fontSize: 16, margin: 0 }}>
-              Notifications
-            </p>
+        <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <p className="text-white font-semibold text-base m-0">Notifications</p>
             {unreadCount > 0 && (
-              <span
-                style={{
-                  backgroundColor: "#ef4444",
-                  color: "white",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  borderRadius: 99,
-                  minWidth: 20,
-                  height: 20,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "0 6px",
-                }}
-              >
+              <span className="bg-red-500 text-white text-[11px] font-bold rounded-full min-w-[20px] h-5 inline-flex items-center justify-center px-1.5">
                 {unreadCount}
               </span>
             )}
           </div>
           {unreadCount > 0 && (
-            <button
-              onClick={onMarkAllRead}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "#d3af37",
-                fontSize: 12,
-                padding: 0,
-              }}
-            >
+            <button onClick={onMarkAllRead} className="bg-none border-none cursor-pointer text-[#d3af37] text-xs p-0">
               Mark all as read
             </button>
           )}
         </div>
 
-        <div
-          style={{
-            padding: "8px",
-            maxHeight: 360,
-            overflowY: "auto",
-          }}
-        >
+        <div className="p-2 max-h-[360px] overflow-y-auto">
           {notifications.length === 0 ? (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "48px 24px",
-                textAlign: "center",
-              }}
-            >
-              <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 14, margin: 0 }}>
-                You're all caught up!
-              </p>
-              <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 12, marginTop: 4, marginBottom: 0 }}>
-                No new notifications.
-              </p>
+            <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+              <p className="text-white/30 text-sm m-0">You're all caught up!</p>
+              <p className="text-white/20 text-xs mt-1 mb-0">No new notifications.</p>
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <div className="flex flex-col gap-1">
               {notifications.map((notif) => (
                 <button
                   key={notif.id}
                   onClick={() => onMarkRead(notif.id)}
+                  className="w-full text-left rounded-[10px] p-3 cursor-pointer border-none box-border transition-colors duration-150"
                   style={{
-                    width: "100%",
-                    textAlign: "left",
-                    borderRadius: 10,
-                    padding: "12px",
-                    cursor: "pointer",
                     background: notif.read ? "transparent" : "rgba(255,255,255,0.05)",
-                    border: notif.read ? "none" : "none",
                     borderLeft: notif.read ? "2px solid transparent" : "2px solid #d3af37",
-                    transition: "background 0.15s",
-                    boxSizing: "border-box",
                   }}
                   onMouseEnter={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.background = notif.read
-                      ? "rgba(255,255,255,0.05)"
-                      : "rgba(255,255,255,0.08)";
+                      ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.08)";
                   }}
                   onMouseLeave={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.background = notif.read
-                      ? "transparent"
-                      : "rgba(255,255,255,0.05)";
+                      ? "transparent" : "rgba(255,255,255,0.05)";
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      justifyContent: "space-between",
-                      gap: 8,
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: 8,
-                        flex: 1,
-                        minWidth: 0,
-                      }}
-                    >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2 flex-1 min-w-0">
                       {!notif.read && (
-                        <span
-                          style={{
-                            flexShrink: 0,
-                            width: 8,
-                            height: 8,
-                            borderRadius: "50%",
-                            backgroundColor: "#ef4444",
-                            marginTop: 4,
-                          }}
-                        />
+                        <span className="shrink-0 w-2 h-2 rounded-full bg-red-500 mt-1" />
                       )}
                       <p
+                        className="text-sm m-0 break-words"
                         style={{
-                          fontSize: 14,
-                          margin: 0,
                           color: notif.read ? "rgba(255,255,255,0.5)" : "white",
                           paddingLeft: notif.read ? 16 : 0,
-                          wordBreak: "break-word",
                         }}
                       >
                         {notif.message}
                       </p>
                     </div>
-                    <p
-                      style={{
-                        fontSize: 12,
-                        color: "rgba(255,255,255,0.3)",
-                        flexShrink: 0,
-                        margin: 0,
-                        paddingTop: 2,
-                      }}
-                    >
+                    <p className="text-xs text-white/30 shrink-0 m-0 pt-0.5">
                       {formatTime(notif.createdAt)}
                     </p>
                   </div>
@@ -244,27 +126,8 @@ export default function NotificationsModal({
           )}
         </div>
 
-        <div
-          style={{
-            padding: "16px 24px",
-            borderTop: "1px solid rgba(255,255,255,0.1)",
-            display: "flex",
-            justifyContent: "flex-end",
-          }}
-        >
-          <button
-            onClick={onClose}
-            style={{
-              padding: "9px 20px",
-              borderRadius: 8,
-              border: "1px solid rgba(255,255,255,0.15)",
-              backgroundColor: "transparent",
-              color: "rgba(255,255,255,0.5)",
-              fontSize: 13,
-              cursor: "pointer",
-              width: "100%",
-            }}
-          >
+        <div className="px-6 py-4 border-t border-white/10 flex justify-end">
+          <button onClick={onClose} className="py-2 px-5 rounded-lg border border-white/15 bg-transparent text-white/50 text-[13px] cursor-pointer w-full">
             Close
           </button>
         </div>

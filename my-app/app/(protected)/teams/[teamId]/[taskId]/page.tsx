@@ -27,7 +27,10 @@ export default function TaskDetailPage() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (!storedUser) { router.replace("/login"); return; }
+    if (!storedUser) {
+      router.replace("/login");
+      return;
+    }
     const parsed = JSON.parse(storedUser);
     setCurrentUserId(parsed.id);
 
@@ -36,6 +39,20 @@ export default function TaskDetailPage() {
 
     if (cached) {
       const { taskData, teamData } = JSON.parse(cached);
+
+      if (!taskData.memberId || !teamData.members) {
+        sessionStorage.removeItem(cacheKey);
+        router.replace("/teams");
+        return;
+      }
+
+      const isMember = teamData.members.some((m: any) => m.userId === parsed.id);
+      if (!isMember) {
+        sessionStorage.removeItem(cacheKey);
+        router.replace("/teams");
+        return;
+      }
+
       const leader = teamData.leaderId === parsed.id;
       const ownTask = taskData.memberId === parsed.id;
       const allowed = ownTask || (leader && taskData.status !== "verified");
@@ -53,9 +70,29 @@ export default function TaskDetailPage() {
     }
 
     Promise.all([
-      fetch(`/api/tasks/${taskId}`).then(r => r.json()),
-      fetch(`/api/teams/${teamId}`).then(r => r.json()),
-    ]).then(([taskData, teamData]) => {
+      fetch(`/api/tasks/${taskId}`),
+      fetch(`/api/teams/${teamId}`),
+    ]).then(async ([taskRes, teamRes]) => {
+      if (taskRes.status === 401 || teamRes.status === 401) {
+        localStorage.removeItem("user");
+        router.replace("/login");
+        return;
+      }
+
+      const taskData = await taskRes.json();
+      const teamData = await teamRes.json();
+
+      if (!taskData.memberId || !teamData.members) {
+        router.replace("/teams");
+        return;
+      }
+
+      const isMember = teamData.members.some((m: any) => m.userId === parsed.id);
+      if (!isMember) {
+        router.replace("/teams");
+        return;
+      }
+
       const leader = teamData.leaderId === parsed.id;
       const ownTask = taskData.memberId === parsed.id;
       const allowed = ownTask || (leader && taskData.status !== "verified");

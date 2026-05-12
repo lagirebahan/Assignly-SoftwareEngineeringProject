@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Calendar, DayTask } from "@/components/ui/Calendar";
 import Image from "next/image";
 import { StatusBadge } from "@/components/tasks/StatusBadge";
+import { useRouter } from "next/navigation";
 
 type UpcomingTask = {
   teamId: string;
@@ -22,23 +23,31 @@ export default function HomePage() {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [upcomingTasks, setUpcomingTasks] = useState<UpcomingTask[]>([]);
 
+  const router = useRouter();
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (!storedUser) {
-      window.location.href = "/login";
+      router.replace("/login");
       return;
     }
     const parsed = JSON.parse(storedUser);
     setName(parsed.name);
 
-    fetch(`/api/tasks?userId=${parsed.id}`)
-      .then((res) => res.json())
-      .then((data) => setUpcomingTasks(data));
-    fetch(`/api/tasks/leader?userId=${parsed.id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setUnverifiedCount(data.unverifiedCount);
-      });
+    Promise.all([
+      fetch(`/api/tasks?userId=${parsed.id}`),
+      fetch(`/api/tasks/leader?userId=${parsed.id}`),
+    ]).then(async ([tasksRes, leaderRes]) => {
+      if (tasksRes.status === 401 || leaderRes.status === 401) {
+        localStorage.removeItem("user");
+        router.replace("/login");
+        return;
+      }
+      const tasksData = await tasksRes.json();
+      const leaderData = await leaderRes.json();
+      setUpcomingTasks(tasksData);
+      setUnverifiedCount(leaderData.unverifiedCount);
+    });
   }, []);
 
   const realDayTasks = upcomingTasks.reduce<Record<string, DayTask[]>>((acc, task) => {

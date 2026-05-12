@@ -162,9 +162,8 @@ export default function AppNavbar() {
                 <Avatar
                   isBordered
                   as="button"
-                  className="transition-transform hover:opacity-80"
+                  className="transition-transform hover:opacity-80 w-[30px] h-[30px]"
                   color="secondary"
-                  style={{ width: "30px", height: "30px" }}
                   name={user?.name || "User"}
                   src="/default_profile.png"
                 />

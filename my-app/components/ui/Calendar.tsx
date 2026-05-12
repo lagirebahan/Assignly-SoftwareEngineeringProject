@@ -134,10 +134,10 @@ export function Calendar({ selectedDay, onSelectDay, dayTasks = {} }: CalendarPr
                   </div>
                   <div className="flex gap-0.5 mt-0.5 min-h-[6px]">
                     {showBlueDot && (
-                      <span style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: "#0ea5e9", display: "inline-block" }} />
+                      <span className="w-[5px] h-[5px] rounded-full bg-sky-500 inline-block" />
                     )}
                     {showTaskDot && (
-                      <span style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: taskDotColor!, display: "inline-block" }} />
+                      <span className="w-[5px] h-[5px] rounded-full inline-block" style={{backgroundColor: taskDotColor!}} />
                     )}
                   </div>
                 </div>

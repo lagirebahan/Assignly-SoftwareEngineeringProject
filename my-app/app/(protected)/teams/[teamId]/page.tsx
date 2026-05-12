@@ -16,31 +16,61 @@ export default function GroupPage() {
 
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) return;
-    const parsed = JSON.parse(storedUser);
-    setCurrentUserId(parsed.id);
+  const storedUser = localStorage.getItem("user");
+  if (!storedUser) {
+    router.replace("/login");
+    return;
+  }
+  const parsed = JSON.parse(storedUser);
+  setCurrentUserId(parsed.id);
 
-    const cacheKey = `group_${teamId}`;
-    const cached = sessionStorage.getItem(cacheKey);
+  const cacheKey = `group_${teamId}`;
+  const cached = sessionStorage.getItem(cacheKey);
 
-    if (cached) {
-      const data = JSON.parse(cached);
+  if (cached) {
+    const data = JSON.parse(cached);
+    if (!data.members) {
+      sessionStorage.removeItem(cacheKey);
+      router.replace("/teams");
+      return;
+    }
+    const isMember = data.members.some((m: any) => m.userId === parsed.id);
+    if (!isMember) {
+      sessionStorage.removeItem(cacheKey);
+      router.replace("/teams");
+      return;
+    }
+    setTeamData(data);
+    setIsLeader(data.leaderId === parsed.id);
+    setGroupName(data.name);
+    return;
+  }
+
+  fetch(`/api/teams/${teamId}`)
+    .then((res) => {
+      if (res.status === 401) {
+        localStorage.removeItem("user");
+        router.replace("/login");
+        return null;
+      }
+      return res.json();
+    })
+    .then((data) => {
+      if (!data || !data.members) {
+        router.replace("/teams");
+        return;
+      }
+      const isMember = data.members.some((m: any) => m.userId === parsed.id);
+      if (!isMember) {
+        router.replace("/teams");
+        return;
+      }
       setTeamData(data);
       setIsLeader(data.leaderId === parsed.id);
       setGroupName(data.name);
-      return;
-    }
-
-    fetch(`/api/teams/${teamId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setTeamData(data);
-        setIsLeader(data.leaderId === parsed.id);
-        setGroupName(data.name);
-        sessionStorage.setItem(cacheKey, JSON.stringify(data));
-      });
-  }, [teamId]);
+      sessionStorage.setItem(cacheKey, JSON.stringify(data));
+    });
+}, [teamId]);
 
   const handleSaveName = async () => {
     setEditingName(false);

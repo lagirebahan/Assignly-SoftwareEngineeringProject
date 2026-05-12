@@ -1,3 +1,4 @@
+import { getAuthUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(
@@ -5,6 +6,9 @@ export async function POST(
   { params }: { params: any }
 ) {
   const { teamId } = await params;
+  const user = await getAuthUser();
+  if (!user) return Response.json({ message: "Unauthorized." }, { status: 401 });
+
   const { title, deadline, teamMemberId } = await req.json();
 
   if (!title || !teamMemberId)

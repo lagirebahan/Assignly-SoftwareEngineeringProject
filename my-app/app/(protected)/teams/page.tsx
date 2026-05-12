@@ -9,6 +9,7 @@ import { Team } from "@/types/team";
 import { AddTeamCard } from "@/components/teams/AddTeamCard";
 import { getMemberStatus } from "@/utils/GetMemberStatus";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function TeamPage() {
   const [loading, setLoading] = useState(true);
@@ -24,6 +25,8 @@ export default function TeamPage() {
     completed: false,
   });
 
+  const router = useRouter();
+
   const filterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,14 +41,25 @@ export default function TeamPage() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (!storedUser) return;
+    if (!storedUser) {
+      router.replace("/login");
+      return;
+    }
     const parsed = JSON.parse(storedUser);
     setUserId(parsed.id);
 
     fetch(`/api/teams?userId=${parsed.id}`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (res.status === 401) {
+          localStorage.removeItem("user");
+          router.replace("/login");
+          return null;
+        }
+        return res.json();
+      })
       .then((data) => {
-        setTeams(data)
+        if (!data) return;
+        setTeams(data);
         setLoading(false);
       });
   }, []);

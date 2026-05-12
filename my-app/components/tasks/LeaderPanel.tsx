@@ -7,32 +7,31 @@ export const LeaderPanel = ({
   onReject: () => void;
   status: "idle" | "verified" | "pending";
 }) => (
-  <div style={{ display: "flex", flexDirection: "column", gap: 12, width: 200, flexShrink: 0 }}>
+  <div className="flex flex-col gap-3 w-[200px] shrink-0">
     <textarea
       placeholder="Comment"
       value={comment}
       onChange={(e) => setComment(e.target.value)}
-      style={{
-        width: "100%", height: 120, borderRadius: 10, border: "1.5px solid #e5e7eb",
-        padding: "10px 12px", fontSize: 13, color: "#374151", resize: "none",
-        fontFamily: "inherit", outline: "none", backgroundColor: "white", boxSizing: "border-box",
-      }}
+      className="w-full h-[120px] rounded-[10px] border-[1.5px] border-gray-200 px-3 py-2.5 text-[13px] text-gray-700 resize-none font-inherit outline-none bg-white box-border"
     />
-    <button onClick={onVerify} style={{
-      padding: "10px 0", borderRadius: 10, border: "none",
-      backgroundColor: status === "verified" ? "#16a34a" : "rgba(255,255,255,0.85)",
-      color: status === "verified" ? "white" : "#111827",
-      fontWeight: 600, fontSize: 14, cursor: "pointer", transition: "all 0.2s",
-      boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
-    }}>
+    <button
+      onClick={onVerify}
+      className="py-2.5 rounded-[10px] border-none font-semibold text-sm cursor-pointer transition-all duration-200 shadow-[0_1px_4px_rgba(0,0,0,0.1)]"
+      style={{
+        backgroundColor: status === "verified" ? "#16a34a" : "rgba(255,255,255,0.85)",
+        color: status === "verified" ? "white" : "#111827",
+      }}
+    >
       {status === "verified" ? "✓ Verified" : "Verify"}
     </button>
-    <button onClick={onReject} style={{
-      padding: "10px 0", borderRadius: 10, border: "none",
-      backgroundColor: status === "pending" ? "#dc2626" : "rgba(255,255,255,0.5)",
-      color: status === "pending" ? "white" : "#6b7280",
-      fontWeight: 600, fontSize: 13, cursor: "pointer", transition: "all 0.2s",
-    }}>
+    <button
+      onClick={onReject}
+      className="py-2.5 rounded-[10px] border-none font-semibold text-[13px] cursor-pointer transition-all duration-200"
+      style={{
+        backgroundColor: status === "pending" ? "#dc2626" : "rgba(255,255,255,0.5)",
+        color: status === "pending" ? "white" : "#6b7280",
+      }}
+    >
       {status === "pending" ? "✗ Rejected" : "Reject"}
     </button>
   </div>
