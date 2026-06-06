@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: Request,
-  { params }: { params: { teamId: string } }
+  { params }: { params: Promise<{ teamId: string }> }
 ) {
   const { teamId } = await params;
   const user = await getAuthUser();
@@ -25,11 +25,16 @@ export async function GET(
   if (!team)
     return Response.json({ message: "Team not found." }, { status: 404 });
 
+  const unassignedTasks = await prisma.task.findMany({
+    where: { teamId, teamMemberId: null },
+  });
+
   return Response.json({
     id: team.id,
     name: team.name,
     joinCode: team.joinCode,
     leaderId: team.leaderId,
+    pendingSuccessorId: team.pendingSuccessorId,
     members: team.members.map((m) => ({
       id: m.id,
       userId: m.userId,
@@ -38,16 +43,27 @@ export async function GET(
         id: t.id,
         title: t.title,
         hasAttachment: t.hasAttachment,
+        attachmentUrl: t.attachmentUrl,
         status: t.status,
         deadline: t.deadline?.toISOString().split("T")[0] ?? null,
+        isLarge: t.isLarge,
       })),
+    })),
+    unassignedTasks: unassignedTasks.map((t) => ({
+      id: t.id,
+      title: t.title,
+      description: t.description,
+      hasAttachment: t.hasAttachment,
+      status: t.status,
+      deadline: t.deadline?.toISOString().split("T")[0] ?? null,
+      isLarge: t.isLarge,
     })),
   }, { status: 200 });
 }
 
 export async function DELETE(
     req: Request,
-    {params}:{params:{teamId:string}}
+    {params}:{params: Promise<{teamId:string}>}
 ){
     const {teamId} = await params;
 
@@ -58,7 +74,7 @@ export async function DELETE(
     console.log("Deleting teamId:", teamId);
 
     await prisma.task.deleteMany({
-        where: {teamMember:{teamId}},
+        where: {teamId},
     });
     await prisma.teamMember.deleteMany({where:{teamId}});
     await prisma.team.delete({where:{id:teamId}});

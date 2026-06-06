@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TeamMember } from "@/types/team";
 import { Task } from "@/types/task";
 import { TaskItem } from "./TaskItem";
@@ -20,7 +20,12 @@ export const MemberColumn = ({
   const [showForm, setShowForm] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDeadline, setNewDeadline] = useState("");
+  const [newIsLarge, setNewIsLarge] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    setTasks(member.tasks ?? []);
+  }, [member.tasks]);
 
   const handleAddTask = async () => {
     if (!newTitle.trim()) { setError("Title is required."); return; }
@@ -33,6 +38,7 @@ export const MemberColumn = ({
         title: newTitle.trim(),
         deadline: newDeadline,
         teamMemberId: member.id,
+        isLarge: newIsLarge,
       }),
     });
 
@@ -42,12 +48,13 @@ export const MemberColumn = ({
     setTasks((prev) => [...prev, newTask]);
     setNewTitle("");
     setNewDeadline("");
+    setNewIsLarge(false);
     setError("");
     setShowForm(false);
   };
 
   return (
-    <div className="bg-white rounded-[14px] pt-3.5 px-3.5 pb-2 shadow-[0_2px_12px_rgba(0,0,0,0.08)] flex flex-col max-h-[calc(100vh-220px)] overflow-hidden">
+    <div className="bg-white rounded-[14px] pt-3.5 px-3.5 pb-2 shadow-[0_2px_12px_rgba(0,0,0,0.08)] flex flex-col h-full overflow-hidden">
 
       <div className="font-bold text-sm text-gray-900 mb-3 pb-2 border-b border-gray-100">
         {member.name}
@@ -96,6 +103,15 @@ export const MemberColumn = ({
               onChange={(e) => setNewDeadline(e.target.value)}
               className="px-2.5 py-1.5 rounded-md text-xs border border-gray-200 outline-none text-gray-700"
             />
+            <label className="flex items-center gap-1.5 text-[11px] text-gray-600 select-none cursor-pointer py-0.5">
+              <input
+                type="checkbox"
+                checked={newIsLarge}
+                onChange={(e) => setNewIsLarge(e.target.checked)}
+                className="w-3.5 h-3.5 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+              />
+              <span>Mark as Large Task</span>
+            </label>
             {error && (
               <span className="text-[11px] text-red-500">{error}</span>
             )}
@@ -107,7 +123,7 @@ export const MemberColumn = ({
                 Add
               </button>
               <button
-                onClick={() => { setShowForm(false); setError(""); setNewTitle(""); setNewDeadline(""); }}
+                onClick={() => { setShowForm(false); setError(""); setNewTitle(""); setNewDeadline(""); setNewIsLarge(false); }}
                 className="flex-1 py-1 rounded-md border border-gray-200 bg-white text-xs text-gray-500 cursor-pointer"
               >
                 Cancel

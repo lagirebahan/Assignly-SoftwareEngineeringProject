@@ -9,4 +9,5 @@ export interface Task {
   status: TaskStatus;
   deadline?: string;
   comment?: string;
+  isLarge?: boolean;
 }

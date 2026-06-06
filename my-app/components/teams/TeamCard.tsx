@@ -15,8 +15,8 @@ export function TeamCard({ team, userId, onDelete }: {
   onDelete?:(teamId:string)=>void; 
 }) {
   
-  const hasAlert = team.members.some((m) => getMemberStatus(m) !== "verified");
-  const progress = getTeamProgress(team.members);
+  const hasAlert = team.members.some((m) => getMemberStatus(m) !== "verified") || (team.unassignedTasks && team.unassignedTasks.length > 0);
+  const progress = getTeamProgress(team.members, team.unassignedTasks);
   const isCompleted = progress === 100;
   const isLeader = team.leaderId === userId;
   const [hovered, setHovered] = useState(false);

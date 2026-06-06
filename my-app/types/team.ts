@@ -6,6 +6,8 @@ export interface Team {
   members: TeamMember[];
   joinCode: string;
   leaderId: string;
+  pendingSuccessorId?: string | null;
+  unassignedTasks?: Task[];
 }
 
 export interface TeamMember {

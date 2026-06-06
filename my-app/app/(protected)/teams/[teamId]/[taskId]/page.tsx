@@ -40,7 +40,7 @@ export default function TaskDetailPage() {
     if (cached) {
       const { taskData, teamData } = JSON.parse(cached);
 
-      if (!taskData.memberId || !teamData.members) {
+      if (!taskData || !teamData.members) {
         sessionStorage.removeItem(cacheKey);
         router.replace("/teams");
         return;
@@ -55,7 +55,7 @@ export default function TaskDetailPage() {
 
       const leader = teamData.leaderId === parsed.id;
       const ownTask = taskData.memberId === parsed.id;
-      const allowed = ownTask || (leader && taskData.status !== "verified");
+      const allowed = ownTask || leader;
 
       if (!allowed) { setAccessDenied(true); setLoading(false); return; }
 
@@ -82,7 +82,7 @@ export default function TaskDetailPage() {
       const taskData = await taskRes.json();
       const teamData = await teamRes.json();
 
-      if (!taskData.memberId || !teamData.members) {
+      if (!taskData || !teamData.members) {
         router.replace("/teams");
         return;
       }
@@ -95,7 +95,7 @@ export default function TaskDetailPage() {
 
       const leader = teamData.leaderId === parsed.id;
       const ownTask = taskData.memberId === parsed.id;
-      const allowed = ownTask || (leader && taskData.status !== "verified");
+      const allowed = ownTask || leader;
 
       if (!allowed) { setAccessDenied(true); setLoading(false); return; }
 
@@ -112,7 +112,9 @@ export default function TaskDetailPage() {
   }, [taskId, teamId, router]);
 
   const isOwnTask = task?.memberId === currentUserId;
-  const showLeaderView = isLeader && !isOwnTask;
+  // Leader sees verification view for all non-pending tasks (unverified + verified)
+  // For their own pending tasks, they see the member submission view
+  const showLeaderView = isLeader && (!isOwnTask || task?.status !== "pending");
   const isVerified = task?.status === "verified";
 
   const handleSubmit = async () => {
@@ -142,11 +144,15 @@ export default function TaskDetailPage() {
         attachmentUrl,
       }),
     });
-    
-    if (res.ok){
+
+    if (res.ok) {
       sessionStorage.removeItem(`task_${taskId}_team_${teamId}`);
+      sessionStorage.removeItem(`group_${teamId}`);
       setUploadDone(true);
-    } 
+      setTimeout(() => {
+        router.push(`/teams/${teamId}`);
+      }, 1500);
+    }
   };
 
   const handleVerify = async () => {
@@ -259,7 +265,7 @@ export default function TaskDetailPage() {
             </div>
             {task.attachmentUrl && (() => {
               const ext = task.attachmentUrl.split(".").pop()?.toLowerCase();
-              const viewable = ["jpg","jpeg","png","gif","webp","pdf","doc","docx","ppt","pptx","xls","xlsx"];
+              const viewable = ["jpg", "jpeg", "png", "gif", "webp", "pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx"];
               const isViewable = viewable.includes(ext);
               return (
                 <div style={{
@@ -314,12 +320,12 @@ export default function TaskDetailPage() {
             [&::-webkit-scrollbar-thumb]:rounded-full
             [&::-webkit-scrollbar-thumb]:bg-transparent"
           style={{
-          backgroundColor: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)",
-          borderRadius: 16, padding: 24, boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
-          display: "flex", flexDirection: "column", gap: 16,
-          overflowY: "auto",
-          maxHeight: "70vh",
-        }}>
+            backgroundColor: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)",
+            borderRadius: 16, padding: 24, boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
+            display: "flex", flexDirection: "column", gap: 16,
+            overflowY: "auto",
+            maxHeight: "70vh",
+          }}>
           <div style={{ backgroundColor: "rgba(255,255,255,0.85)", borderRadius: 12, padding: "14px 16px" }}>
             <div style={{ fontWeight: 700, fontSize: 15, color: "#111827", marginBottom: 6 }}>
               {task.title}
@@ -344,13 +350,50 @@ export default function TaskDetailPage() {
           )}
 
           {isVerified ? (
-            <div style={{
-              display: "flex", alignItems: "center", justifyContent: "center",
-              padding: "20px", borderRadius: 12, backgroundColor: "rgba(22,163,74,0.2)",
-              border: "1px solid rgba(22,163,74,0.4)",
-            }}>
-              <span style={{ color: "#4ade80", fontWeight: 700, fontSize: 15 }}>✓ This task has been verified!</span>
-            </div>
+            <>
+              <div style={{
+                display: "flex", alignItems: "center", justifyContent: "center",
+                padding: "20px", borderRadius: 12, backgroundColor: "rgba(22,163,74,0.2)",
+                border: "1px solid rgba(22,163,74,0.4)",
+              }}>
+                <span style={{ color: "#4ade80", fontWeight: 700, fontSize: 15 }}>✓ This task has been verified!</span>
+              </div>
+
+              {task.description && (
+                <div style={{
+                  padding: "10px 14px", borderRadius: 10,
+                  backgroundColor: "rgba(255,255,255,0.85)", fontSize: 13,
+                  color: "#374151",
+                }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", marginBottom: 4 }}>Your submission</div>
+                  {task.description}
+                </div>
+              )}
+
+              {task.attachmentUrl && (() => {
+                const ext = task.attachmentUrl.split(".").pop()?.toLowerCase();
+                const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext);
+                return (
+                  <div style={{
+                    backgroundColor: "rgba(255,255,255,0.85)", borderRadius: 10, padding: "10px 14px",
+                  }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", marginBottom: 6 }}>Attachment</div>
+                    {isImage ? (
+                      <img src={task.attachmentUrl} alt="Attachment" style={{ maxWidth: "100%", maxHeight: 200, borderRadius: 8, objectFit: "contain" }} />
+                    ) : (
+                      <span style={{ fontSize: 13, color: "#374151" }}>📎 {task.attachmentUrl.split("/").pop()}</span>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {task.comment && (
+                <div style={{ backgroundColor: "rgba(22,163,74,0.15)", borderRadius: 10, padding: "10px 14px", border: "1px solid rgba(22,163,74,0.3)" }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#4ade80", marginBottom: 4 }}>Leader's comment:</div>
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>{task.comment}</div>
+                </div>
+              )}
+            </>
           ) : (
             <>
               <textarea
@@ -417,9 +460,9 @@ export default function TaskDetailPage() {
       {viewingAttachment && task.attachmentUrl && (() => {
         const url = task.attachmentUrl;
         const ext = url.split(".").pop()?.toLowerCase();
-        const isImage = ["jpg","jpeg","png","gif","webp"].includes(ext);
+        const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext);
         const isPdf = ext === "pdf";
-        const isOffice = ["doc","docx","ppt","pptx","xls","xlsx"].includes(ext);
+        const isOffice = ["doc", "docx", "ppt", "pptx", "xls", "xlsx"].includes(ext);
         const viewerUrl = isOffice ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true` : url;
 
         return (

@@ -18,6 +18,11 @@ export async function GET(req: Request) {
               tasks: true,
             },
           },
+          tasks: {
+            where: {
+              teamMemberId: null,
+            },
+          },
         },
       },
     },
@@ -28,6 +33,7 @@ export async function GET(req: Request) {
     name: tm.team.name,
     joinCode: tm.team.joinCode,
     leaderId: tm.team.leaderId,
+    pendingSuccessorId: tm.team.pendingSuccessorId,
     members: tm.team.members.map((m) => ({
       id: m.id,
       userId: m.userId,
@@ -38,7 +44,17 @@ export async function GET(req: Request) {
         hasAttachment: t.hasAttachment,
         status: t.status,
         deadline: t.deadline?.toISOString().split("T")[0] ?? null,
+        isLarge: t.isLarge,
       })),
+    })),
+    unassignedTasks: tm.team.tasks.map((t) => ({
+      id: t.id,
+      title: t.title,
+      description: t.description,
+      hasAttachment: t.hasAttachment,
+      status: t.status,
+      deadline: t.deadline?.toISOString().split("T")[0] ?? null,
+      isLarge: t.isLarge,
     })),
   }));
 

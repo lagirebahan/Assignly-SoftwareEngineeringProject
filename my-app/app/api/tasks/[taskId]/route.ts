@@ -14,10 +14,10 @@ export async function GET(
   const task = await prisma.task.findUnique({
     where: { id: taskId },
     include: {
+      team: true,
       teamMember: {
         include: {
           user: true,
-          team: true,
         },
       },
     },
@@ -36,10 +36,11 @@ export async function GET(
     deadline: task.deadline?.toISOString().split("T")[0] ?? null,
     comment: task.comment,
     teamMemberId: task.teamMemberId,
-    memberName: task.teamMember.user.name,
-    memberId: task.teamMember.userId,
-    teamId: task.teamMember.teamId,
-    teamName: task.teamMember.team.name,
+    memberName: task.teamMember?.user.name ?? "Unassigned",
+    memberId: task.teamMember?.userId ?? null,
+    teamId: task.teamId,
+    teamName: task.team.name,
+    isLarge: task.isLarge,
   }, { status: 200 });
 }
 
@@ -82,20 +83,22 @@ export async function PATCH(
       data: { status: "verified", comment },
     });
 
-    await prisma.notification.create({
-      data: {
-        userId: task.teamMember.userId,
-        message: `Your work -${task.title}- in -${task.teamMember.team.name}- has been verified by the leader.${comment ? ` Comments: ${comment}` : ""}`,
-      },
-    });
-
-    if (task.teamMember.user.emailNotifications) {
-      await transporter.sendMail({
-        from: `"Assignly" <${process.env.GMAIL_USER}>`,
-        to: task.teamMember.user.email,
-        subject: "Your task has been verified!",
-        html: `<p>Your task <strong>${task.title}</strong> in <strong>${task.teamMember.team.name}</strong> has been verified.${comment ? ` Comment: ${comment}` : ""}</p>`,
+    if (task.teamMember) {
+      await prisma.notification.create({
+        data: {
+          userId: task.teamMember.userId,
+          message: `Your work -${task.title}- in -${task.teamMember.team.name}- has been verified by the leader.${comment ? ` Comments: ${comment}` : ""}`,
+        },
       });
+
+      if (task.teamMember.user.emailNotifications) {
+        await transporter.sendMail({
+          from: `"Assignly" <${process.env.GMAIL_USER}>`,
+          to: task.teamMember.user.email,
+          subject: "Your task has been verified!",
+          html: `<p>Your task <strong>${task.title}</strong> in <strong>${task.teamMember.team.name}</strong> has been verified.${comment ? ` Comment: ${comment}` : ""}</p>`,
+        });
+      }
     }
 
     return Response.json(updated, { status: 200 });
@@ -107,20 +110,22 @@ export async function PATCH(
       data: { status: "pending", comment },
     });
 
-    await prisma.notification.create({
-      data: {
-        userId: task.teamMember.userId,
-        message: `Your work -${task.title}- in -${task.teamMember.team.name}- has been rejected by the leader.${comment ? ` Comments: ${comment}` : ""}`,
-      },
-    });
-
-    if (task.teamMember.user.emailNotifications) {
-      await transporter.sendMail({
-        from: `"Assignly" <${process.env.GMAIL_USER}>`,
-        to: task.teamMember.user.email,
-        subject: "Your task needs revision",
-        html: `<p>Your task <strong>${task.title}</strong> in <strong>${task.teamMember.team.name}</strong> has been rejected.${comment ? ` Comment: ${comment}` : ""}</p>`,
+    if (task.teamMember) {
+      await prisma.notification.create({
+        data: {
+          userId: task.teamMember.userId,
+          message: `Your work -${task.title}- in -${task.teamMember.team.name}- has been rejected by the leader.${comment ? ` Comments: ${comment}` : ""}`,
+        },
       });
+
+      if (task.teamMember.user.emailNotifications) {
+        await transporter.sendMail({
+          from: `"Assignly" <${process.env.GMAIL_USER}>`,
+          to: task.teamMember.user.email,
+          subject: "Your task needs revision",
+          html: `<p>Your task <strong>${task.title}</strong> in <strong>${task.teamMember.team.name}</strong> has been rejected.${comment ? ` Comment: ${comment}` : ""}</p>`,
+        });
+      }
     }
 
     return Response.json(updated, { status: 200 });

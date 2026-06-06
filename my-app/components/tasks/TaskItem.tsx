@@ -20,9 +20,9 @@ export const TaskItem = ({
 
   const isOwnTask = memberId === currentUserId;
 
-  const canOpen = isLeader
-    ? task.status !== "verified"
-    : isOwnTask;
+  // Leaders can open any task (including verified, to re-review/reject)
+  // Members can open their own tasks (read-only when verified)
+  const canOpen = isLeader || isOwnTask;
 
   const handleClick = () => {
     if (!canOpen) return;
@@ -35,9 +35,7 @@ export const TaskItem = ({
       className={`mb-3 ${canOpen ? "cursor-pointer opacity-100" : "cursor-not-allowed opacity-50"}`}
       title={
         !canOpen
-          ? isLeader && task.status === "verified"
-            ? "Already verified"
-            : "Not your task"
+          ? "Not your task"
           : undefined
       }
     >
@@ -51,7 +49,7 @@ export const TaskItem = ({
         </span>
       </div>
 
-      <AttachmentBox hasAttachment={task.hasAttachment} />
+      <AttachmentBox hasAttachment={task.hasAttachment} attachmentUrl={task.attachmentUrl} />
       <StatusBadge status={task.status} />
     </div>
   );
