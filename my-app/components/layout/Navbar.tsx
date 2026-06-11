@@ -21,7 +21,7 @@ import ProfileSettingsModal from "./ProfileSettingsModal";
 import NotificationsModal, { AppNotification } from "./NotificationsModal";
 
 export const AssignlyLogo = () => (
-  <Image src="/icon.png" alt="Assignly Logo" width={36} height={36} priority />
+  <Image src="/assignlyicon.png" alt="Assignly Logo" width={36} height={36} priority />
 );
 
 type PendingAction = "profile" | "settings" | "notifications" | null;

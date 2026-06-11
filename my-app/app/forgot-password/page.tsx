@@ -91,7 +91,7 @@ export default function ForgotPage() {
         }}
       >
         <div className="flex flex-col items-center gap-3 mb-8">
-          <Image src="/icon.png" alt="Logo" width={54} height={54} />
+          <Image src="/assignlyicon.png" alt="Logo" width={54} height={54} />
           <span className="text-sm font-medium px-6 py-2 rounded-full bg-black text-white">
             Forgot Password
           </span>
