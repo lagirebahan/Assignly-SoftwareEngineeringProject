@@ -63,7 +63,7 @@ export default function RegisterPage() {
         style={{ background: "#f9f8f6", boxShadow: "0 30px 60px rgba(0,0,0,0.25)" }}
       >
         <div className="flex flex-col items-center gap-3 mb-8">
-          <Image src="/assignlyicon.png" alt="Assignly Logo" width={54} height={54} priority />
+          <img src="/assignlyicon.png" alt="Assignly Logo" width={54} height={54} />
           <span
             className="text-sm font-medium px-6 py-2 rounded-full"
             style={{ background: "#1a1a1a", color: "#f9f8f6", letterSpacing: "0.1em" }}
