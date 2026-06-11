@@ -14,7 +14,7 @@ type UpcomingTask = {
   taskId: string;
   taskTitle: string;
   deadline: string;
-  status:"pending"|"unverified"|"verified";
+  status: "pending" | "unverified" | "verified";
 }
 
 export default function HomePage() {
@@ -74,7 +74,7 @@ export default function HomePage() {
 
       <div className="grid grid-cols-[1fr_1.4fr] gap-8 flex-1 min-h-0">
 
-        <div className= "flex flex-col min-h-0">
+        <div className="flex flex-col min-h-0">
           <h2 className="text-white text-2xl font-semibold mb-4 text-center flex-shrink-0">Upcoming Task</h2>
           <div className="flex-1 overflow-y-auto pr-2 min-h-0 space-y-6
             [&::-webkit-scrollbar]:w-1.5
@@ -82,35 +82,35 @@ export default function HomePage() {
             [&::-webkit-scrollbar-track]:rounded-full
             [&::-webkit-scrollbar-thumb]:rounded-full
             [&::-webkit-scrollbar-thumb]:bg-gray-400/100"
-          
+
           >
             {upcomingTasks.filter(t => t.status === "pending" || t.status === "unverified").length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center bg-gray-200 rounded-2xl p-8">
-                <Image src="/icons/good_man.png" alt="Nice job dude" width={256} height={256} style={{ marginBottom: 16, display: "block", margin: "0 auto 16px"}} />
+                <Image src="/icons/good_man.png" alt="Nice job dude" width={256} height={256} style={{ marginBottom: 16, display: "block", margin: "0 auto 16px" }} />
                 <p className="text-gray-500 text-lg font-medium text-center">Great Job! You've finished all your tasks.</p>
               </div>
             ) : (
-              [...upcomingTasks.filter(t => t.status === "pending" || t.status ==="unverified")]
-              .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime())
-              .map((task, i) => (
-                <Link key={i} href={`/teams/${task.teamId}`} className="block">
-                  <div className="bg-gray-200 hover:bg-gray-300 transition-colors rounded-2xl px-5 py-4 shadow-md cursor-pointer">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">{task.teamName}</span>
-                      <StatusBadge status={task.status} />
-                    </div>
+              [...upcomingTasks.filter(t => t.status === "pending" || t.status === "unverified")]
+                .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime())
+                .map((task, i) => (
+                  <Link key={i} href={`/teams/${task.teamId}`} className="block">
+                    <div className="bg-gray-200 hover:bg-gray-300 transition-colors rounded-2xl px-5 py-4 shadow-md cursor-pointer">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">{task.teamName}</span>
+                        <StatusBadge status={task.status} />
+                      </div>
 
-                    <p className="text-gray-800 font-semibold text-sm mb-2">{task.taskTitle}</p>
+                      <p className="text-gray-800 font-semibold text-sm mb-2">{task.taskTitle}</p>
 
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <span>📅</span>
-                      <span>Due {new Date(task.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <span>📅</span>
+                        <span>Due {new Date(task.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))
+                  </Link>
+                ))
             )}
-            
+
           </div>
         </div>
 
@@ -121,11 +121,11 @@ export default function HomePage() {
             [&::-webkit-scrollbar-track]:bg-transparent
             [&::-webkit-scrollbar-thumb]:rounded-full
             [&::-webkit-scrollbar-thumb]:bg-gray-400/100"
-          
+
           >
             <div className="bg-gray-200 rounded-2xl p-6 shadow-md">
-              <Calendar selectedDay={selectedDay} onSelectDay={setSelectedDay} dayTasks={realDayTasks}/>
-              <div className="border-t border-gray-300 my-5"/>
+              <Calendar selectedDay={selectedDay} onSelectDay={setSelectedDay} dayTasks={realDayTasks} />
+              <div className="border-t border-gray-300 my-5" />
 
               {selectedDay ? (
                 <>
@@ -135,7 +135,7 @@ export default function HomePage() {
                   ) : (
                     <div className="space-y-2">
                       {dayTasks.map((task) => (
-                        <Link key = {task.taskId} href={`/teams/${task.teamId}`}>
+                        <Link key={task.taskId} href={`/teams/${task.teamId}`}>
                           <div className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer">
                             <span className="text-sm text-gray-700">
                               <span className="font-medium">{task.teamName}</span>
@@ -145,7 +145,7 @@ export default function HomePage() {
                               width: 8, height: 8, borderRadius: "50%",
                               backgroundColor: task.status === "pending" ? "#ef4444" : task.status === "unverified" ? "#f97316" : "#22c55e",
                               display: "inline-block", flexShrink: 0
-                            }}/>
+                            }} />
                           </div>
                         </Link>
                       ))}
@@ -158,8 +158,8 @@ export default function HomePage() {
 
                   <div className="space-y-3">
                     <StatusRow label="On Progress" count={pendingCount} color="#ef4444" />
-                    <StatusRow label="Waiting for Leader's Verification" count={waitingVerification} color="#f97316"/>
-                    <StatusRow label="Waiting for Your Validation" count={unverifiedCount} color="#a855f7"/> 
+                    <StatusRow label="Waiting for Leader's Verification" count={waitingVerification} color="#f97316" />
+                    <StatusRow label="Waiting for Your Validation" count={unverifiedCount} color="#a855f7" />
                   </div>
                 </>
               )}

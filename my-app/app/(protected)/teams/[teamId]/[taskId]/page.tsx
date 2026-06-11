@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { LeaderPanel } from "@/components/tasks/LeaderPanel";
 import { DropZone } from "@/components/tasks/DropZone";
+import { AttachmentPreview } from "@/components/tasks/AttachmentPreview";
 
 export default function TaskDetailPage() {
   const [currentUserId, setCurrentUserId] = useState("");
@@ -18,7 +19,6 @@ export default function TaskDetailPage() {
   const [comment, setComment] = useState("");
   const [verifyStatus, setVerifyStatus] = useState<"idle" | "verified" | "pending">("idle");
   const [showRejectConfirm, setShowRejectConfirm] = useState(false);
-  const [viewingAttachment, setViewingAttachment] = useState(false);
 
   const router = useRouter();
   const params = useParams();
@@ -263,46 +263,9 @@ export default function TaskDetailPage() {
             }}>
               {task.description || <span style={{ color: "#9ca3af" }}>No description submitted yet.</span>}
             </div>
-            {task.attachmentUrl && (() => {
-              const ext = task.attachmentUrl.split(".").pop()?.toLowerCase();
-              const viewable = ["jpg", "jpeg", "png", "gif", "webp", "pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx"];
-              const isViewable = viewable.includes(ext);
-              return (
-                <div style={{
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  backgroundColor: "rgba(255,255,255,0.85)", borderRadius: 10, padding: "10px 14px",
-                }}>
-                  <span style={{ fontSize: 13, color: "#374151" }}>
-                    📎 {task.attachmentUrl.split("/").pop()}
-                  </span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    {isViewable && (
-                      <button
-                        onClick={() => setViewingAttachment(true)}
-                        style={{ background: "none", border: "none", cursor: "pointer", color: "#3b82f6", fontSize: 13 }}
-                      >
-                        👁 View
-                      </button>
-                    )}
-                    <button
-                      onClick={async () => {
-                        const res = await fetch(task.attachmentUrl);
-                        const blob = await res.blob();
-                        const blobUrl = URL.createObjectURL(blob);
-                        const a = document.createElement("a");
-                        a.href = blobUrl;
-                        a.download = task.attachmentUrl.split("/").pop() || "attachment";
-                        a.click();
-                        URL.revokeObjectURL(blobUrl);
-                      }}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280", fontSize: 13 }}
-                    >
-                      ↓ Download
-                    </button>
-                  </div>
-                </div>
-              );
-            })()}
+            {task.attachmentUrl && (
+              <AttachmentPreview url={task.attachmentUrl} label="Attachment" />
+            )}
           </div>
 
           <LeaderPanel
@@ -323,8 +286,8 @@ export default function TaskDetailPage() {
             backgroundColor: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)",
             borderRadius: 16, padding: 24, boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
             display: "flex", flexDirection: "column", gap: 16,
-            overflowY: "auto",
-            maxHeight: "70vh",
+            // overflowY: "auto",
+            // maxHeight: "70vh",
           }}>
           <div style={{ backgroundColor: "rgba(255,255,255,0.85)", borderRadius: 12, padding: "14px 16px" }}>
             <div style={{ fontWeight: 700, fontSize: 15, color: "#111827", marginBottom: 6 }}>
@@ -370,22 +333,9 @@ export default function TaskDetailPage() {
                 </div>
               )}
 
-              {task.attachmentUrl && (() => {
-                const ext = task.attachmentUrl.split(".").pop()?.toLowerCase();
-                const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext);
-                return (
-                  <div style={{
-                    backgroundColor: "rgba(255,255,255,0.85)", borderRadius: 10, padding: "10px 14px",
-                  }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", marginBottom: 6 }}>Attachment</div>
-                    {isImage ? (
-                      <img src={task.attachmentUrl} alt="Attachment" style={{ maxWidth: "100%", maxHeight: 200, borderRadius: 8, objectFit: "contain" }} />
-                    ) : (
-                      <span style={{ fontSize: 13, color: "#374151" }}>📎 {task.attachmentUrl.split("/").pop()}</span>
-                    )}
-                  </div>
-                );
-              })()}
+              {task.attachmentUrl && (
+                <AttachmentPreview url={task.attachmentUrl} label="Your submission" />
+              )}
 
               {task.comment && (
                 <div style={{ backgroundColor: "rgba(22,163,74,0.15)", borderRadius: 10, padding: "10px 14px", border: "1px solid rgba(22,163,74,0.3)" }}>
@@ -396,6 +346,9 @@ export default function TaskDetailPage() {
             </>
           ) : (
             <>
+              {task.attachmentUrl && (
+                <AttachmentPreview url={task.attachmentUrl} label="Previous attachment" />
+              )}
               <textarea
                 placeholder="Describe your work..."
                 value={description}
@@ -457,52 +410,6 @@ export default function TaskDetailPage() {
           </div>
         </div>
       )}
-      {viewingAttachment && task.attachmentUrl && (() => {
-        const url = task.attachmentUrl;
-        const ext = url.split(".").pop()?.toLowerCase();
-        const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext);
-        const isPdf = ext === "pdf";
-        const isOffice = ["doc", "docx", "ppt", "pptx", "xls", "xlsx"].includes(ext);
-        const viewerUrl = isOffice ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true` : url;
-
-        return (
-          <div
-            style={{ position: "fixed", inset: 0, zIndex: 300, backgroundColor: "rgba(0,0,0,0.8)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}
-            onClick={() => setViewingAttachment(false)}
-          >
-            <div
-              style={{ backgroundColor: "white", borderRadius: 16, overflow: "hidden", width: "90vw", maxWidth: 900, maxHeight: "85vh", display: "flex", flexDirection: "column" }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div style={{ padding: "12px 16px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{url.split("/").pop()}</span>
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button
-                    onClick={async () => {
-                      const res = await fetch(task.attachmentUrl);
-                      const blob = await res.blob();
-                      const blobUrl = URL.createObjectURL(blob);
-                      const a = document.createElement("a");
-                      a.href = blobUrl;
-                      a.download = task.attachmentUrl.split("/").pop() || "attachment";
-                      a.click();
-                      URL.revokeObjectURL(blobUrl);
-                    }}
-                    style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280", fontSize: 13 }}
-                  >
-                    ↓ Download
-                  </button>
-                  <button onClick={() => setViewingAttachment(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "#6b7280" }}>×</button>
-                </div>
-              </div>
-              <div style={{ flex: 1, overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-                {isImage && <img src={url} style={{ maxWidth: "100%", maxHeight: "70vh", objectFit: "contain" }} />}
-                {(isPdf || isOffice) && <iframe src={viewerUrl} style={{ width: "100%", height: "70vh", border: "none" }} />}
-              </div>
-            </div>
-          </div>
-        );
-      })()}
     </div>
   );
 }

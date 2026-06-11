@@ -63,7 +63,7 @@ export default function TeamPage() {
         setLoading(false);
       });
   }, []);
-  
+
   const toggleFilter = (key: keyof typeof filters) => {
     setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
   };
@@ -71,18 +71,18 @@ export default function TeamPage() {
   const hasTeams = teams.length > 0;
 
   const filteredTeams = teams
-  .filter((t) => t.name.toLowerCase().includes(search.toLowerCase()))
-  .filter((t) => {
-    const anyActive = Object.values(filters).some(Boolean);
-    if (!anyActive) return true; // no filter = show all
+    .filter((t) => t.name.toLowerCase().includes(search.toLowerCase()))
+    .filter((t) => {
+      const anyActive = Object.values(filters).some(Boolean);
+      if (!anyActive) return true; // no filter = show all
 
-    if (filters.leading && t.leaderId === userId) return true;
-    if (filters.waitingCompletion && t.members.some((m) => getMemberStatus(m) === "pending")) return true;
-    if (filters.waitingVerification && t.members.some((m) => getMemberStatus(m) === "unverified")) return true;
-    if (filters.completed && t.members.every((m) => getMemberStatus(m) === "verified")) return true;
+      if (filters.leading && t.leaderId === userId) return true;
+      if (filters.waitingCompletion && t.members.some((m) => getMemberStatus(m) === "pending")) return true;
+      if (filters.waitingVerification && t.members.some((m) => getMemberStatus(m) === "unverified")) return true;
+      if (filters.completed && t.members.every((m) => getMemberStatus(m) === "verified")) return true;
 
-    return false;
-  });
+      return false;
+    });
 
   const handleDeleteTeam = async (teamId: string) => {
     const res = await fetch(`/api/teams/${teamId}`, { method: "DELETE" });
@@ -154,21 +154,21 @@ export default function TeamPage() {
               outline: "none",
             }}
           />
-          <Image 
-            src="/icons/search_icon.png" 
-            alt="Search" 
-            width={16} 
-            height={16} 
-            style={{ 
-              position: "absolute", 
-              left: 14, 
-              top: "50%", 
-              transform: "translateY(-50%)", 
-            }} 
+          <Image
+            src="/icons/search_icon.png"
+            alt="Search"
+            width={16}
+            height={16}
+            style={{
+              position: "absolute",
+              left: 14,
+              top: "50%",
+              transform: "translateY(-50%)",
+            }}
           />
-          
+
         </div>
-        
+
         <div style={{ position: "relative" }} ref={filterRef}>
           <button
             onClick={() => setShowFilter((v) => !v)}
@@ -200,10 +200,10 @@ export default function TeamPage() {
               zIndex: 100,
             }}>
               {[
-                { key: "leading",             label: "Teams you're leading", dot: null },
-                { key: "waitingCompletion",   label: "Waiting for completion", dot: "#ef4444" },
+                { key: "leading", label: "Teams you're leading", dot: null },
+                { key: "waitingCompletion", label: "Waiting for completion", dot: "#ef4444" },
                 { key: "waitingVerification", label: "Waiting for verification", dot: "#f97316" },
-                { key: "completed",           label: "Completed", dot: "#22c55e" },
+                { key: "completed", label: "Completed", dot: "#22c55e" },
               ].map(({ key, label, dot }) => (
                 <div
                   key={key}
@@ -228,7 +228,7 @@ export default function TeamPage() {
                   }}>
                     {filters[key as keyof typeof filters] && (
                       <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                        <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}
                   </div>
@@ -257,7 +257,7 @@ export default function TeamPage() {
         </div>
       </div>
 
-      <div className= "flex flex-col min-h-0">
+      <div className="flex flex-col min-h-0">
         {!hasTeams ? (
           <EmptyState onClick={() => setShowModal(true)} />
         ) : (
@@ -266,7 +266,7 @@ export default function TeamPage() {
             <div className="flex-shrink-0">
               <Legend />
             </div>
-            
+
             <div className="flex-1 overflow-y-auto pr-2 min-h-0 space-y-6
             [&::-webkit-scrollbar]:w-1.5
             [&::-webkit-scrollbar-track]:bg-white
@@ -285,17 +285,17 @@ export default function TeamPage() {
                 <AddTeamCard onClick={() => setShowModal(true)} />
 
                 {!loading && filteredTeams.map((team) => (
-                  <TeamCard key={team.id} team={team} userId={userId} onDelete={handleDeleteTeam}/>
+                  <TeamCard key={team.id} team={team} userId={userId} onDelete={handleDeleteTeam} />
                 ))}
               </div>
             </div>
-            
+
           </>
         )}
       </div>
-      
+
       {showModal && (
-        <Modal onClose={() => setShowModal(false)} onCreateTeam={handleCreateTeam} onJoinTeam={handleJoinTeam}/>
+        <Modal onClose={() => setShowModal(false)} onCreateTeam={handleCreateTeam} onJoinTeam={handleJoinTeam} />
       )}
     </div>
   );

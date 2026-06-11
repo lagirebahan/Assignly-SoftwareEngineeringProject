@@ -13,18 +13,18 @@ export default function GroupPage() {
   const [isLeader, setIsLeader] = useState(false);
   const [groupName, setGroupName] = useState("Unknown Group");
   const [editingName, setEditingName] = useState(false);
-  
+
   const [unassignedTasks, setUnassignedTasks] = useState<Task[]>([]);
   const [pendingSuccessorId, setPendingSuccessorId] = useState<string | null>(null);
 
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [leaveWarningMsg, setLeaveWarningMsg] = useState("");
-  
+
   const [showNominateModal, setShowNominateModal] = useState(false);
   const [selectedSuccessor, setSelectedSuccessor] = useState("");
 
   const [showPoolModal, setShowPoolModal] = useState(false);
-  
+
   const [showClaimConfirm, setShowClaimConfirm] = useState(false);
   const [taskToClaim, setTaskToClaim] = useState<Task | null>(null);
 
@@ -65,7 +65,7 @@ export default function GroupPage() {
         setGroupName(data.name);
         setUnassignedTasks(data.unassignedTasks ?? []);
         setPendingSuccessorId(data.pendingSuccessorId ?? null);
-        
+
         const cacheKey = `group_${teamId}`;
         sessionStorage.setItem(cacheKey, JSON.stringify(data));
       });
@@ -109,7 +109,7 @@ export default function GroupPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: groupName }),
     });
-    sessionStorage.removeItem(`group_${teamId}`); 
+    sessionStorage.removeItem(`group_${teamId}`);
   };
 
   const handleSuccessionResponse = async (action: "accept" | "decline") => {
@@ -242,7 +242,7 @@ export default function GroupPage() {
   return (
     <div
       style={{
-        height: "100vh",
+        height: "100%",
         background: "linear-gradient(to bottom, #2e2e2e, #b6a88b)",
         display: "flex",
         flexDirection: "column",
@@ -530,7 +530,7 @@ export default function GroupPage() {
             <p style={{ fontSize: 13, color: "#4b5563", marginBottom: 16, lineHeight: 1.5 }}>
               As the leader, you must choose a successor to transfer leadership to. They must accept before you can leave the team.
             </p>
-            
+
             <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
               SELECT NEW LEADER
             </label>
